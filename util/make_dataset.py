@@ -123,20 +123,16 @@ def period_div(
             locations = Murmur_locations[index].split("+")  # 有杂音的区域
             # 此听诊区有杂音
             if wav_location in locations:
+                murmur_type = "Present"
                 Systolic_state = Systolic_murmur_timing[index]
                 Diastolic_state = Diastolic_murmur_timing[index]
                 # 没有 Systolic murmur
-                if Systolic_state == "nan":
-                    Systolic_murmur = "Absent"
-                else:
-                    Systolic_murmur = "Present"
+                Systolic_murmur = "Absent" if Systolic_state == "nan" else "Present"
                 # 没有 Diastolic murmur
-                if Diastolic_state == "nan":
-                    Diastolic_murmur = "Absent"
-                else:
-                    Diastolic_murmur = "Present"
+                Diastolic_murmur = "Absent" if Diastolic_state == "nan" else "Present"
             # 此听诊区没有杂音
             else:
+                murmur_type = "Absent"
                 Systolic_murmur = "Absent"
                 Diastolic_murmur = "Absent"
                 Systolic_state = "nan"
@@ -144,16 +140,17 @@ def period_div(
             # 如果是present的有杂音区域，或absent区域
             # if (mur == "Absent\\") or (mur == "Present\\" and (wav_location in locations)):
             if os.path.exists(tsv_path):
-                state_div(
+                state_div2(
                     tsv_path,
                     wav_path,
                     dir_path + "\\",
                     patient_id + pos,
-                    Systolic_murmur,
-                    Diastolic_murmur,
-                    Systolic_state,
-                    Diastolic_state,
-                    hunman_feat
+                    murmur_type
+                    # Systolic_murmur,
+                    # Diastolic_murmur,
+                    # Systolic_state,
+                    # Diastolic_state,
+                    # hunman_feat
                 )
 
 
@@ -225,54 +222,41 @@ def state_div2(
     tsvname,
     wavname,
     state_path,
-    index,
-    Systolic_murmur,
-    Diastolic_murmur,
-    Systolic_state,
-    Diastolic_state,
+    id_pos,
+    murmur_type
+
 ):
-    """切割出收缩期和舒张期"""
+    """按照3s切片"""
     index_file = index_load(tsvname)
+    spilt_len = 4  # 切割长度为spilt_len s
     recording, fs = librosa.load(wavname, sr=4000)
-    num1 = 0
-    num2 = 0
-    # start_index1 = 0
-    # end_index1 = 0
-    # start_index2 = 0
-    # end_index2 = 0
+    start = float(index_file[0][0]) * fs
+    start = float(index_file[-1][1]) * fs
+    buff = recording[int(start): int(start)]  # 要切割的数据
+    # 将buff数据切割为3s的数据
+    # 计算音频的总长度（秒）
+    # total_length = len(recording) / fs
 
-    for i in range(index_file.shape[0]):
-        if index_file[i][2] == "2":
-            start_index1 = float(index_file[i][0]) * fs
-            end_index1 = float(index_file[i][1]) * fs
-            num1 = num1 + 1
-            buff1 = recording[int(start_index1): int(end_index1)]  # 字符串索引切割
-            print(start_index1, end_index1)
-            print("buff1 len: " + str(len(buff1)))
-            soundfile.write(
-                state_path
-                + "{}_{}_{}_{}_{}.wav".format(
-                    index, "Systolic", num1, Systolic_murmur, Systolic_state
-                ),
-                buff1,
-                fs,
-            )
+    # 计算每个片段的样本数
+    samples_per_segment = spilt_len * fs
 
-        if index_file[i][2] == "4":
-            start_index2 = float(index_file[i][0]) * fs
-            end_index2 = float(index_file[i][1]) * fs
-            num2 = num2 + 1
-            buff2 = recording[int(start_index2): int(end_index2)]  # 字符串索引切割
-            print(start_index2, end_index2)
-            print("buff2 len: " + str(len(buff2)))
-            soundfile.write(
-                state_path
-                + "{}_{}_{}_{}_{}.wav".format(
-                    index, "Diastolic", num2, Diastolic_murmur, Diastolic_state
-                ),
-                buff2,
-                fs,
-            )
+    # 切割音频数据
+    segments = []
+    for start in np.arange(0, len(recording), samples_per_segment):
+        end = start + samples_per_segment
+        segment = recording[start:end]
+        segments.append(segment)
+
+    segments.pop()
+    for i, segment in enumerate(segments):
+        soundfile.write(
+            state_path
+            + "{}_{}_{}_{}_{}.wav".format(
+            id_pos, "3s", i, murmur_type, "none"
+        ),
+            segment,
+            fs,
+        )
 
 
 # get patient id from csv file

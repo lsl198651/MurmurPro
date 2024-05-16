@@ -5,6 +5,11 @@ import librosa
 import torch
 from torchaudio import transforms
 
+"""
+这个文件中的函数用于获取患者个人信息，
+包括年龄，性别，怀孕状态等等，然后将这些信息转化为one-hot编码的形式，作为模型的输入特征之一。
+"""
+
 
 def get_sex(data):
     sex = None

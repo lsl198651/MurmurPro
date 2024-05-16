@@ -1,4 +1,3 @@
-from re import A
 from helper_code import *
 from typing import Optional
 import pandas as pd
