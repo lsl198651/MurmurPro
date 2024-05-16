@@ -1,0 +1,13 @@
+.png
+*.png
+confusion_matrix
+ResultFile
+tensorboard
+.pyc
+error_index
+.vscode
+__pycache__
+*.csv
+patient_error_index
+MyModels
+log
