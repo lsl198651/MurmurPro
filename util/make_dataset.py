@@ -226,7 +226,7 @@ def state_div2(
     murmur_type
 
 ):
-    """按照3s切片"""
+    """按照4s切片"""
     index_file = index_load(tsvname)
     spilt_len = 4  # 切割长度为spilt_len s
     recording, fs = librosa.load(wavname, sr=4000)
@@ -252,8 +252,8 @@ def state_div2(
         soundfile.write(
             state_path
             + "{}_{}_{}_{}_{}.wav".format(
-            id_pos, "3s", i, murmur_type, "none"
-        ),
+                id_pos, "3s", i, murmur_type, "none"
+            ),
             segment,
             fs,
         )
@@ -313,8 +313,8 @@ def fold_devide(data, flod_num=5):
 def data_set(root_path):
     """数据增强，包括时间拉伸和反转"""
     # root_path = r"D:\Shilong\murmur\01_dataset\06_new5fold"
-    npy_path_padded = root_path+r"\npyFile_padded\npy_files01_norm12502"
-    index_path = root_path + r"\npyFile_padded\index_files01_norm12502"
+    npy_path_padded = root_path+r"\npyFile_padded\npy_files01_norm"
+    index_path = root_path + r"\npyFile_padded\index_files01_norm"
     if not os.path.exists(npy_path_padded):
         os.makedirs(npy_path_padded)
     if not os.path.exists(index_path):
@@ -398,9 +398,9 @@ if __name__ == '__main__':
     Systolic_murmur_timing = csv_reader_cl(csv_path, tag_list[3])
     Diastolic_murmur_timing = csv_reader_cl(csv_path, tag_list[4])
     # TODO 修改此处的root_path
-    root_path = r"D:\Shilong\murmur\01_dataset\12_baseset_4k"
+    root_path = r"D:\Shilong\murmur\01_dataset\13_baseset_4s_4k"
     # root_path = r"D:\Shilong\murmur\01_dataset\validset_4k"
-    data_set(root_path)
+    # data_set(root_path)
     if not os.path.exists(root_path):
         os.makedirs(root_path)
     # save data to csv file
@@ -463,8 +463,9 @@ if __name__ == '__main__':
 
     # TODO 修改此处的src_path
     # src_path = r"D:\Shilong\murmur\dataset_all\training_data"
-    src_path = r"D:\Shilong\murmur\Dataset\PCGdataset\validation_data"
+    src_path = r"D:\Shilong\murmur\Dataset\PCGdataset\training_data"
     folder_path = root_path+"\\"
+
     # 将wav文件和tsv文件copy到目标文件夹
     copy_wav_file(src_path, folder_path, absent_patient_id, "Absent", positoin)
     copy_wav_file(src_path, folder_path,

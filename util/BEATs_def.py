@@ -39,7 +39,7 @@ from scipy import signal
 # from python_speech_features import logfbank
 # from spafe.features.gfcc import erb_spectrogram
 # from spafe.utils.preprocessing import SlidingWindow
-from util.get_wide_feature import hand_fea
+# from util.get_wide_feature import hand_fea
 warnings.filterwarnings('ignore')
 
 
@@ -320,8 +320,8 @@ class DatasetClass_t(Dataset):
         iditem = self.id[index]
         # embeding = self.wavebd[index]
         embeding = 1  # fake
-        wide_feat = hand_fea((dataitem, 4000))
-        return dataitem.float(), labelitem, iditem, wide_feat
+        # wide_feat = hand_fea((dataitem, 4000))
+        return dataitem.float(), labelitem, iditem
 
     def __len__(self):
         # 返回文件数据的数目
