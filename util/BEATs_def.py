@@ -185,7 +185,10 @@ def get_wav_data(dir_path, num=0):
     file_names = []
     wav_nums = []
     feat = []
-    data_length = 1250
+    # 设置采样率为4k，时间长度为4
+    fs = 4000
+    time = 4
+    data_length = fs*time
     for root, dir, file in os.walk(dir_path):
         for subfile in file:
             wav_path = os.path.join(root, subfile)
@@ -199,19 +202,21 @@ def get_wav_data(dir_path, num=0):
                 y, sr = librosa.load(wav_path, sr=4000)
                 # TODO 采样率:4k
                 # y_16k = librosa.resample(y=y, orig_sr=sr, target_sr=16000)
-                y_16k_norm = wav_normalize(y)  # 归一化
-                print("num is "+str(num), "y_16k size: "+str(y_16k_norm.size))
-                if y_16k_norm.shape[0] < data_length:
-                    y_16k_norm = np.pad(
-                        y_16k_norm,
-                        ((0, data_length - y_16k_norm.shape[0])),
+                y_4k_norm = wav_normalize(y)  # 归一化
+                # 数据裁剪
+                if y_4k_norm.shape[0] < data_length:
+                    y_4k_norm = np.pad(
+                        y_4k_norm,
+                        ((0, data_length - y_4k_norm.shape[0])),
                         "constant",
                         constant_values=(0, 0),
                     )
-                elif y_16k_norm.shape[0] > data_length:
-                    # y_16k_norm = y_16k_norm[-data_length:]
-                    y_16k_norm = y_16k_norm[:data_length]
-                wav.append(y_16k_norm)
+                elif y_4k_norm.shape[0] > data_length:
+                    # y_4k_norm = y_4k_norm[-data_length:]
+                    y_4k_norm = y_4k_norm[:data_length]
+                print("num is "+str(num), "y_16k size: "+str(y_4k_norm.size))
+
+                wav.append(y_4k_norm)
                 file_name = subfile.split("_")
                 # 标签读取
                 if file_name[4] == "Absent":  # Absent

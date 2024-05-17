@@ -252,7 +252,7 @@ def state_div2(
         soundfile.write(
             state_path
             + "{}_{}_{}_{}_{}.wav".format(
-                id_pos, "3s", i, murmur_type, "none"
+                id_pos, str(spilt_len)+"s", i, murmur_type, "none"
             ),
             segment,
             fs,
@@ -326,13 +326,13 @@ def data_set(root_path):
         for folder in os.listdir(src_fold_root_path):
             dataset_path = os.path.join(src_fold_root_path, folder)
             if k == 0 and folder == "absent":
-                features, label, names, index, data_id, feat = get_wav_data(
+                wav, label, names, index, data_id, feat = get_wav_data(
                     dataset_path, num=0)  # absent
             else:
-                features, label, names, index, data_id, feat = get_wav_data(
+                wav, label, names, index, data_id, feat = get_wav_data(
                     dataset_path, data_id)  # absent
             np.save(npy_path_padded +
-                    f"\\{folder}_features_norm01_fold{k}.npy", features)
+                    f"\\{folder}_wav_norm01_fold{k}.npy", wav)
             np.save(npy_path_padded +
                     f"\\{folder}_labels_norm01_fold{k}.npy", label)
             np.save(npy_path_padded +
@@ -344,7 +344,7 @@ def data_set(root_path):
             absent_train_dic = zip(index, names, feat)
             pd.DataFrame(absent_train_dic).to_csv(
                 index_path+f"\\fold{k}_{folder}_disc.csv", index=False, header=False)
-    print("data set done!")
+    print("data set is done!")
 
 
 def get_features_mod(data):
@@ -371,6 +371,16 @@ def get_features_mod(data):
     else:
         preg_fea = '0'
     return age_fea + sex_features + preg_fea
+
+
+def get_logmel_feature(wavform):
+    """提取logmel特征"""
+    # 读取音频文件
+    y, sr = librosa.load(wavform, sr=4000)
+    # 提取特征
+    mel = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128)
+    logmel = librosa.power_to_db(mel, ref=np.max)
+    return logmel
 
 
 # ==================================================================== #
