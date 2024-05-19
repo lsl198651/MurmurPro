@@ -25,7 +25,7 @@ def get_features(train_fold: list, test_fold: list, set_type: str):
         train_folders = ['absent', 'present']
         for folder in train_folders:
             train_feature_dic[k][folder] = np.load(npy_path_padded +
-                                                   f"\\{folder}_features_norm01_fold{k}.npy", allow_pickle=True)
+                                                   f"\\{folder}_wav_norm01_fold{k}.npy", allow_pickle=True)
             train_labels_dic[k][folder] = np.load(npy_path_padded +
                                                   f"\\{folder}_labels_norm01_fold{k}.npy", allow_pickle=True)
             train_index_dic[k][folder] = np.load(npy_path_padded +
@@ -48,7 +48,7 @@ def get_features(train_fold: list, test_fold: list, set_type: str):
         test_folders = ['absent', 'present']
         for folder in test_folders:
             test_feature_dic[v][folder] = np.load(npy_path_padded +
-                                                  f"\\{folder}_features_norm01_fold{v}.npy", allow_pickle=True)
+                                                  f"\\{folder}_wav_norm01_fold{v}.npy", allow_pickle=True)
             test_labels_dic[v][folder] = np.load(npy_path_padded +
                                                  f"\\{folder}_labels_norm01_fold{v}.npy", allow_pickle=True)
             test_index_dic[v][folder] = np.load(npy_path_padded +

@@ -320,6 +320,7 @@ def data_set(root_path):
     if not os.path.exists(index_path):
         os.makedirs(index_path)
     for k in range(5):
+        mel_list = []
         src_fold_root_path = root_path+r"\fold_set_"+str(k)
         # TODO 是否做数据增强
         # data_Auge(src_fold_root_path)
@@ -331,6 +332,11 @@ def data_set(root_path):
             else:
                 wav, label, names, index, data_id, feat = get_wav_data(
                     dataset_path, data_id)  # absent
+            for i in range(len(wav)):
+                mel = get_logmel_feature(wav[i])
+                mel_list.append(mel)
+            np.save(npy_path_padded +
+                    f"\\{folder}_mel_norm01_fold{k}.npy", mel_list)
             np.save(npy_path_padded +
                     f"\\{folder}_wav_norm01_fold{k}.npy", wav)
             np.save(npy_path_padded +
@@ -373,12 +379,12 @@ def get_features_mod(data):
     return age_fea + sex_features + preg_fea
 
 
-def get_logmel_feature(wavform):
+def get_logmel_feature(wavform, fs=4000):
     """提取logmel特征"""
     # 读取音频文件
-    y, sr = librosa.load(wavform, sr=4000)
+    # y, sr = librosa.load(wavform, sr=4000)
     # 提取特征
-    mel = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128)
+    mel = librosa.feature.melspectrogram(y=wavform, sr=fs, n_mels=128)
     logmel = librosa.power_to_db(mel, ref=np.max)
     return logmel
 
@@ -408,7 +414,7 @@ if __name__ == '__main__':
     Systolic_murmur_timing = csv_reader_cl(csv_path, tag_list[3])
     Diastolic_murmur_timing = csv_reader_cl(csv_path, tag_list[4])
     # TODO 修改此处的root_path
-    root_path = r"D:\Shilong\murmur\01_dataset\13_baseset_4s_4k"
+    root_path = r"D:\Shilong\murmur\01_dataset\14_baseset_4s_mel_4k"
     # root_path = r"D:\Shilong\murmur\01_dataset\validset_4k"
     # data_set(root_path)
     if not os.path.exists(root_path):
