@@ -2,7 +2,6 @@ import logging
 import os
 import pandas as pd
 import torch
-import utils
 import torch.nn as nn
 from torch import optim
 from datetime import datetime
@@ -14,7 +13,7 @@ from transformers import optimization
 from torch.utils.tensorboard import SummaryWriter
 # from util.BEATs_def import Log_GF
 # , get_segment_target_list, FocalLoss_VGG
-from util.BEATs_def import FocalLoss, segment_classifier
+from util.utils_train import FocalLoss, segment_classifier
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, binary_accuracy, binary_precision, binary_recall
 
 

@@ -8,12 +8,37 @@ import soundfile
 import csv
 import numpy as np
 import pandas as pd
-from BEATs_def import mkdir
-import soundfile as sf
-from BEATs_def import get_wav_data
+# from BEATs_def import mkdir
+# import soundfile as sf
+# from BEATs_def import get_wav_data
 import pandas as pd
-from helper_code import *
+from util.helper_code import *
 from util.utils_features import get_features_mod, get_logmel_feature
+
+
+def mkdir(path):
+    folder = os.path.exists(path)
+    # judge wether make dir or not
+    if not folder:
+        os.makedirs(path)
+
+
+def csv_reader_cl(file_name, clo_num):
+    """read csv file by column
+    """
+    with open(file_name, encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile)
+        column = [row[clo_num] for row in reader]
+    return column
+
+
+#
+def csv_reader_row(file_name, row_num):
+    """read the csv row_num-th row"""
+    with open(file_name, "r") as f:
+        reader = csv.reader(f)
+        row = list(reader)
+    return row[row_num]
 
 
 def copy_file(src_path, folder_path, patient_id_list, mur, position):
@@ -344,3 +369,63 @@ def data_set(root_path):
             pd.DataFrame(absent_train_dic).to_csv(
                 index_path+f"\\fold{k}_{folder}_disc.csv", index=False, header=False)
     print("data set is done!")
+
+
+def get_wav_data(dir_path, num=0):
+    """返回数据文件"""
+    wav = []
+    label = []
+    file_names = []
+    wav_nums = []
+    feat = []
+    # 设置采样率为4k，时间长度为4
+    fs = 4000
+    time = 4
+    data_length = fs*time
+    for root, dir, file in os.walk(dir_path):
+        for subfile in file:
+            wav_path = os.path.join(root, subfile)
+            if os.path.exists(wav_path):
+                # 序号
+                num = num+1
+                file_names.append(subfile)
+                wav_nums.append(num)
+                # 数据读取
+                print("reading: " + subfile)
+                y, sr = librosa.load(wav_path, sr=4000)
+                # TODO 采样率:4k
+                # y_16k = librosa.resample(y=y, orig_sr=sr, target_sr=16000)
+                y_4k_norm = wav_normalize(y)  # 归一化
+                # 数据裁剪
+                if y_4k_norm.shape[0] < data_length:
+                    y_4k_norm = np.pad(
+                        y_4k_norm,
+                        ((0, data_length - y_4k_norm.shape[0])),
+                        "constant",
+                        constant_values=(0, 0),
+                    )
+                elif y_4k_norm.shape[0] > data_length:
+                    # y_4k_norm = y_4k_norm[-data_length:]
+                    y_4k_norm = y_4k_norm[:data_length]
+                print("num is "+str(num), "y_16k size: "+str(y_4k_norm.size))
+
+                wav.append(y_4k_norm)
+                file_name = subfile.split("_")
+                # 标签读取
+                if file_name[4] == "Absent":  # Absent
+                    label.append(0)
+                elif file_name[4] == "Present":  # Present
+                    label.append(1)  # 说明该听诊区有杂音
+                feat.append(file_name[-1])
+
+    return wav, label, file_names, wav_nums, num, feat
+
+
+def wav_normalize(data):
+    """min max归一化"""
+    # range = np.max(data) - np.min(data)
+    data = (data-np.mean(data))/np.max(np.abs(data))
+    # data = (data-np.min(data))/range
+    return data
+    # recording -= recording.mean()
+    # recording /= recording.abs().max()

@@ -1,5 +1,5 @@
 import os
-from BEATs_def import get_wav_data
+from util.backup.BEATs_def import get_wav_data
 import numpy as np
 # ---------------------------
 # -----/ 此文件暂时不用 /----

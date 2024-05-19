@@ -3,7 +3,7 @@ import shutil
 import librosa
 import numpy as np
 import soundfile as sf
-from BEATs_def import get_wav_data, get_patientid
+from util.backup.BEATs_def import get_wav_data, get_patientid
 from dataAugmentation import data_Auge
 import pandas as pd
 

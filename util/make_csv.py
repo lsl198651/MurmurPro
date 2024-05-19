@@ -4,7 +4,7 @@ import pandas as pd
 """
     此文件用于生成csv文件，用于后续的训练和测试
     valid和test没有csv，不便于产生数据集
-    """
+"""
 
 
 def define_csv(data_folder, csv_path: Optional[str] = None):

@@ -2,7 +2,7 @@ import os
 import numpy as np
 import librosa
 import soundfile as sf
-from BEATs_def import wav_reverse, mkdir
+from util.backup.BEATs_def import wav_reverse, mkdir
 from pydub import AudioSegment
 
 

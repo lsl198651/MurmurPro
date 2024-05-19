@@ -8,7 +8,7 @@ import shutil
 import librosa
 import librosa.display
 import numpy as np
-from helper_code import *
+from util.helper_code import *
 
 
 def get_mfcc(wavform):
