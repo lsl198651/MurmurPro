@@ -7,17 +7,8 @@
 
 import os
 import shutil
-import random
-import librosa
-import matplotlib.pyplot as plt
-import librosa.display
-import soundfile
-import csv
-import numpy as np
 import pandas as pd
-from util.backup.BEATs_def import mkdir, csv_reader_cl, csv_reader_row
-import soundfile as sf
-from util.backup.BEATs_def import get_wav_data, get_patientid
+from utils_dataset import csv_reader_cl, csv_reader_row
 from dataAugmentation import data_Auge
 import pandas as pd
 from helper_code import *
@@ -415,9 +406,9 @@ if __name__ == '__main__':
     Systolic_murmur_timing = csv_reader_cl(csv_path, tag_list[3])
     Diastolic_murmur_timing = csv_reader_cl(csv_path, tag_list[4])
     # TODO 修改此处的root_path
-    root_path = r"D:\Shilong\murmur\01_dataset\14_baseset_4s_mel_4k"
+    root_path = r"D:\Shilong\murmur\01_dataset\12_baseset_4k"
     # root_path = r"D:\Shilong\murmur\01_dataset\validset_4k"
-    # data_set(root_path)
+    data_set(root_path)
     if not os.path.exists(root_path):
         os.makedirs(root_path)
     # save data to csv file

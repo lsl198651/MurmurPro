@@ -273,7 +273,7 @@ class My_ResNet(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         # See note [TorchScript super()]
-        x = self.preprocess(x)
+        # x = self.preprocess(x)
         x = x.unsqueeze(1)
         x = self.conv1(x)
         x = self.bn1(x)

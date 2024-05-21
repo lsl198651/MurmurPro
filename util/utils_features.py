@@ -9,6 +9,7 @@ import librosa
 import librosa.display
 import numpy as np
 from util.helper_code import *
+from pyts.image import GramianAngularField, MarkovTransitionField
 
 
 def get_mfcc(wavform):
@@ -30,17 +31,32 @@ def get_logmel_feature(wavform, fs=4000):
     # 读取音频文件
     # y, sr = librosa.load(wavform, sr=4000)
     # 提取特征
-    mel = librosa.feature.melspectrogram(y=wavform, sr=fs, n_mels=128)
+    mel = librosa.feature.melspectrogram(
+        y=wavform, sr=fs, n_mels=128, n_fft=256)
     logmel = librosa.power_to_db(mel, ref=np.max)
     return logmel
 
 
-def get_lami_angle(wavform):
+def get_MarkovTransitionField(wavform):
+    """求马尔科夫转移场特征"""
+    X = np.array([wavform])
+    mtf = MarkovTransitionField(n_bins=8)
+    X_mtf = mtf.fit_transform(X)
+    return X_mtf[0]
+
+
+def get_GramianAngularField(wavform):
     """求格拉姆角场特征
 
     Args:
         wavform (_type_): 心音始于信号
     """
+
+    X = np.array([wavform])
+    # Compute Gramian angular fields
+    gasf = GramianAngularField(method='summation')
+    X_gasf = gasf.fit_transform(X)
+    return X_gasf[0]
 
 
 def get_sample_entropy(wavform):
@@ -66,9 +82,6 @@ def get_distribution_entropy(wavform):
     # 读取音频文件
     # y, sr = librosa.load(wav_file, sr=None)
     # 提取分布熵特征
-    distrub_spre = entropy.distribution_entropy(wavform)
-    # return distrub_spre
-    return distrub_spre
 
 
 def get_fuzzy_entropy(wavform):
@@ -83,20 +96,6 @@ def get_fuzzy_entropy(wavform):
     mohu_spre = entropy.fuzzy_entropy(wavform)
     # return mohu_spre
     return mohu_spre
-
-
-def get_gelamr_abgle(wavform):
-    """求格拉莫角域特征
-
-    Args:
-        wavform (_type_): _description_
-    """
-    # 读取音频文件
-    # y, sr = librosa.load(wav_file, sr=None)
-    # 提取格拉莫角域特征
-    gelamr_abgle = entropy.gelamr_abgle(wavform)
-    # return gelamr_abgle
-    return gelamr_abgle
 
 
 def get_time_feature(wavform):

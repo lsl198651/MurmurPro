@@ -13,7 +13,7 @@ import pandas as pd
 # from BEATs_def import get_wav_data
 import pandas as pd
 from util.helper_code import *
-from util.utils_features import get_features_mod, get_logmel_feature
+from util.utils_features import get_GramianAngularField, get_MarkovTransitionField, get_features_mod, get_logmel_feature
 
 
 def mkdir(path):
@@ -331,43 +331,59 @@ def copy_states_data(patient_id, folder, type, murmur):
 def data_set(root_path):
     """数据增强，包括时间拉伸和反转"""
     # root_path = r"D:\Shilong\murmur\01_dataset\06_new5fold"
-    npy_path_padded = root_path+r"\npyFile_padded\npy_files01_norm"
-    index_path = root_path + r"\npyFile_padded\index_files01_norm"
+    npy_path_padded = root_path+r"\npyFile_padded\npy_files01_norm_gaf"
+    index_path = root_path + r"\npyFile_padded\index_files01_norm_gaf"
     if not os.path.exists(npy_path_padded):
         os.makedirs(npy_path_padded)
     if not os.path.exists(index_path):
         os.makedirs(index_path)
     for k in range(5):
         mel_list = []
+        gaf_list = []
+        mtf_list = []
         src_fold_root_path = root_path+r"\fold_set_"+str(k)
         # TODO 是否做数据增强
         # data_Auge(src_fold_root_path)
         for folder in os.listdir(src_fold_root_path):
             dataset_path = os.path.join(src_fold_root_path, folder)
             if k == 0 and folder == "absent":
-                wav, label, names, index, data_id, feat = get_wav_data(
+                wav, label, _, _, data_id, _ = get_wav_data(
                     dataset_path, num=0)  # absent
             else:
-                wav, label, names, index, data_id, feat = get_wav_data(
+                wav, label, _, _, data_id, _ = get_wav_data(
                     dataset_path, data_id)  # absent
+            print("now is getting feature ...")
             for i in range(len(wav)):
-                mel = get_logmel_feature(wav[i])
-                mel_list.append(mel)
+                # 计算logmel
+                # mel = get_logmel_feature(wav[i])
+                # mel_list.append(mel)
+
+                # 计算GramianAngularField
+                gaf = get_GramianAngularField(wav[i])
+                gaf_list.append(gaf)
+
+                # mtf = get_MarkovTransitionField(wav[i])
+                # mtf_list.append(mtf)
+            print("now is saving data ...")
+            # np.save(npy_path_padded +
+            #         f"\\{folder}_mtf_norm01_fold{k}.npy", mtf_list)
             np.save(npy_path_padded +
-                    f"\\{folder}_mel_norm01_fold{k}.npy", mel_list)
-            np.save(npy_path_padded +
-                    f"\\{folder}_wav_norm01_fold{k}.npy", wav)
+                    f"\\{folder}_gaf_norm01_fold{k}.npy", gaf_list)
+            # np.save(npy_path_padded +
+            #         f"\\{folder}_mel_norm01_fold{k}.npy", mel_list)
+            # np.save(npy_path_padded +
+            #         f"\\{folder}_wav_norm01_fold{k}.npy", wav)
             np.save(npy_path_padded +
                     f"\\{folder}_labels_norm01_fold{k}.npy", label)
-            np.save(npy_path_padded +
-                    f"\\{folder}_index_norm01_fold{k}.npy", index)
-            np.save(npy_path_padded +
-                    f"\\{folder}_name_norm01_fold{k}.npy", names)
-            np.save(npy_path_padded +
-                    f"\\{folder}_feat_norm01_fold{k}.npy", feat)
-            absent_train_dic = zip(index, names, feat)
-            pd.DataFrame(absent_train_dic).to_csv(
-                index_path+f"\\fold{k}_{folder}_disc.csv", index=False, header=False)
+            # np.save(npy_path_padded +
+            #         f"\\{folder}_index_norm01_fold{k}.npy", index)
+            # np.save(npy_path_padded +
+            #         f"\\{folder}_name_norm01_fold{k}.npy", names)
+            # np.save(npy_path_padded +
+            #         f"\\{folder}_feat_norm01_fold{k}.npy", feat)
+            # absent_train_dic = zip(index, names, feat)
+            # pd.DataFrame(absent_train_dic).to_csv(
+            #     index_path+f"\\fold{k}_{folder}_disc.csv", index=False, header=False)
     print("data set is done!")
 
 
@@ -381,7 +397,7 @@ def get_wav_data(dir_path, num=0):
     # 设置采样率为4k，时间长度为4
     fs = 4000
     time = 4
-    data_length = fs*time
+    data_length = 1250
     for root, dir, file in os.walk(dir_path):
         for subfile in file:
             wav_path = os.path.join(root, subfile)
