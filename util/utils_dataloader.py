@@ -342,16 +342,5 @@ def fold5_dataloader(train_folder, test_folder, Data_Augmentation, set_type):
     #         test_ebd_dic[test_folder[0]]['present'],
     #     )
     # )
-    train_Gramian_feature = []
-    test_Gramian_feature = []
-    for i in range(len(test_features)):
 
-        gaf = get_GramianAngularField(test_features[i])
-        test_Gramian_feature.append(gaf)
-
-    for i in range(len(train_features)):
-
-        gaf = get_GramianAngularField(test_features[i])
-        train_Gramian_feature.append(gaf)
-
-    return train_Gramian_feature, train_label, train_index, test_Gramian_feature,  test_label, test_index
+    return train_features, train_label, train_index, test_features,  test_label, test_index

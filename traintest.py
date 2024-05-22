@@ -1,18 +1,20 @@
 import logging
 import os
+import numpy
 import pandas as pd
 import torch
 import torch.nn as nn
 from torch import optim
 from datetime import datetime
 from transformers import optimization
-# import numpy as np
+import numpy as np
 # import sklearn.metrics
 # from torch.cuda.amp import autocast, GradScaler
 # from util.BEATs_def import draw_confusion_matrix, butterworth_low_pass_filter
 from torch.utils.tensorboard import SummaryWriter
 # from util.BEATs_def import Log_GF
 # , get_segment_target_list, FocalLoss_VGG
+from util.utils_features import get_GramianAngularField
 from util.utils_train import FocalLoss, segment_classifier
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, binary_accuracy, binary_precision, binary_recall
 
@@ -83,22 +85,20 @@ def train_test(
         train_len = 0
         input_train = []
         target_train = []
+        train_Gramian_feature = list()
+
         for data_t, label_t, index_t in train_loader:  # , feat, embeding
-            # embedings = []
-            # for ebed in embeding:
-            #     ebd_List = []
-            #     ebd_List.append(embedding1(
-            #         torch.tensor(ebed//10 % 10)).detach().numpy())
-            #     ebd_List.append(embedding2(
-            #         torch.tensor(ebed//10 % 10)).detach().numpy())
-            #     ebd_List.append(embedding3(
-            #         torch.tensor(ebed % 10)).detach().numpy())
-            #     embedings.append(ebd_List)
-            # embedings = torch.tensor(embedings)
-            data_t, label_t,  index_t = data_t.to(
+
+            for i in range(len(data_t)):
+                gaf = get_GramianAngularField(data_t[i].numpy())
+                train_Gramian_feature.append(gaf)
+            Gramian_feature = torch.tensor(
+                np.array(train_Gramian_feature), dtype=torch.float32)
+            train_Gramian_feature = []
+            Gramian_feature, label_t,  index_t = Gramian_feature.to(
                 device), label_t.to(device),  index_t.to(device)  # , feat.to(device)  # , embedings.to(device)
             # with autocast(device_type='cuda', dtype=torch.float16):# 这函数害人呀，慎用
-            predict_t = model(data_t)  #
+            predict_t = model(Gramian_feature)  #
             loss = loss_fn(
                 predict_t, label_t.long())
             optimizer.zero_grad()
@@ -127,22 +127,18 @@ def train_test(
         correct_v = 0
         with torch.no_grad():
             for data_v, label_v, index_v in test_loader:
-                # embedings_v = []
-                # for ebed in embeding_v:
-                #     ebd_List = []
-                #     ebd_List.append(embedding1(
-                #         torch.tensor(ebed//10 % 10)).detach().numpy())
-                #     ebd_List.append(embedding2(
-                #         torch.tensor(ebed//10 % 10)).detach().numpy())
-                #     ebd_List.append(embedding3(
-                #         torch.tensor(ebed % 10)).detach().numpy())
-                #     embedings_v.append(ebd_List)
-                # embedings_v = torch.tensor(embedings_v)
-                data_v, label_v, index_v = \
-                    data_v.to(device), label_v.to(device), index_v.to(
+
+                for i in range(len(data_v)):
+                    gaf = get_GramianAngularField(data_v[i].numpy())
+                    train_Gramian_feature.append(gaf)
+                Gramian_feature = torch.tensor(
+                    np.array(train_Gramian_feature), dtype=torch.float32)
+                train_Gramian_feature = []
+                Gramian_feature, label_v, index_v = \
+                    Gramian_feature.to(device), label_v.to(device), index_v.to(
                         device)  # , feat_v.to(device)
                 optimizer.zero_grad()
-                predict_v = model(data_v)
+                predict_v = model(Gramian_feature)
                 loss_v = loss_fn(predict_v, label_v.long())
                 # get the index of the max log-probability
                 pred_v = predict_v.max(1, keepdim=True)[1]
