@@ -11,7 +11,7 @@ from util.utils_features import get_GramianAngularField
 def get_features(train_fold: list, test_fold: list, set_type: str):
     # npy_path_padded = r"D:\Shilong\murmur\01_dataset\05_5fold\npyFile_padded\npy_files01"
     root_path = r"D:\Shilong\murmur\01_dataset"+set_type
-    npy_path_padded = root_path+r"\npyFile_padded\npy_files01"
+    npy_path_padded = root_path+r"\npyFile_padded\npy_files01_norm_gaf"
     train_feature_dic = {}
     train_labels_dic = {}
     train_index_dic = {}
@@ -28,7 +28,7 @@ def get_features(train_fold: list, test_fold: list, set_type: str):
         train_folders = ['absent', 'present']
         for folder in train_folders:
             train_feature_dic[k][folder] = np.load(npy_path_padded +
-                                                   f"\\{folder}_features_norm01_fold{k}.npy", allow_pickle=True)
+                                                   f"\\{folder}_gaf_norm01_fold{k}.npy", allow_pickle=True)
             train_labels_dic[k][folder] = np.load(npy_path_padded +
                                                   f"\\{folder}_labels_norm01_fold{k}.npy", allow_pickle=True)
             train_index_dic[k][folder] = np.load(npy_path_padded +
@@ -51,7 +51,7 @@ def get_features(train_fold: list, test_fold: list, set_type: str):
         test_folders = ['absent', 'present']
         for folder in test_folders:
             test_feature_dic[v][folder] = np.load(npy_path_padded +
-                                                  f"\\{folder}_features_norm01_fold{v}.npy", allow_pickle=True)
+                                                  f"\\{folder}_gaf_norm01_fold{v}.npy", allow_pickle=True)
             test_labels_dic[v][folder] = np.load(npy_path_padded +
                                                  f"\\{folder}_labels_norm01_fold{v}.npy", allow_pickle=True)
             test_index_dic[v][folder] = np.load(npy_path_padded +

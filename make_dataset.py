@@ -8,11 +8,11 @@
 import os
 import shutil
 import pandas as pd
-from utils_dataset import csv_reader_cl, csv_reader_row
-from dataAugmentation import data_Auge
+from util.utils_dataset import csv_reader_cl, csv_reader_row
+from util.dataAugmentation import data_Auge
 import pandas as pd
-from helper_code import *
-from utils_dataset import *
+from util.helper_code import *
+from util.utils_dataset import *
 # ========================/ functions define /========================== #
 
 

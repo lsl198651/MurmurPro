@@ -347,10 +347,10 @@ def data_set(root_path):
         for folder in os.listdir(src_fold_root_path):
             dataset_path = os.path.join(src_fold_root_path, folder)
             if k == 0 and folder == "absent":
-                wav, label, _, _, data_id, _ = get_wav_data(
+                wav, label, _, index, data_id, _ = get_wav_data(
                     dataset_path, num=0)  # absent
             else:
-                wav, label, _, _, data_id, _ = get_wav_data(
+                wav, label, _, index, data_id, _ = get_wav_data(
                     dataset_path, data_id)  # absent
             print("now is getting feature ...")
             for i in range(len(wav)):
@@ -371,12 +371,12 @@ def data_set(root_path):
                     f"\\{folder}_gaf_norm01_fold{k}.npy", gaf_list)
             # np.save(npy_path_padded +
             #         f"\\{folder}_mel_norm01_fold{k}.npy", mel_list)
-            # np.save(npy_path_padded +
-            #         f"\\{folder}_wav_norm01_fold{k}.npy", wav)
+            np.save(npy_path_padded +
+                    f"\\{folder}_wav_norm01_fold{k}.npy", wav)
             np.save(npy_path_padded +
                     f"\\{folder}_labels_norm01_fold{k}.npy", label)
-            # np.save(npy_path_padded +
-            #         f"\\{folder}_index_norm01_fold{k}.npy", index)
+            np.save(npy_path_padded +
+                    f"\\{folder}_index_norm01_fold{k}.npy", index)
             # np.save(npy_path_padded +
             #         f"\\{folder}_name_norm01_fold{k}.npy", names)
             # np.save(npy_path_padded +
@@ -392,7 +392,7 @@ def get_wav_data(dir_path, num=0):
     wav = []
     label = []
     file_names = []
-    wav_nums = []
+    index = []
     feat = []
     # 设置采样率为4k，时间长度为4
     fs = 4000
@@ -405,7 +405,7 @@ def get_wav_data(dir_path, num=0):
                 # 序号
                 num = num+1
                 file_names.append(subfile)
-                wav_nums.append(num)
+                index.append(num)
                 # 数据读取
                 print("reading: " + subfile)
                 y, sr = librosa.load(wav_path, sr=4000)
@@ -434,7 +434,7 @@ def get_wav_data(dir_path, num=0):
                     label.append(1)  # 说明该听诊区有杂音
                 feat.append(file_name[-1])
 
-    return wav, label, file_names, wav_nums, num, feat
+    return wav, label, file_names, index, num, feat
 
 
 def wav_normalize(data):

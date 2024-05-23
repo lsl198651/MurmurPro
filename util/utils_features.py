@@ -53,7 +53,7 @@ def get_GramianAngularField(wavform):
         wavform (_type_): 心音始于信号
     """
 
-    X = np.array([wavform])
+    X = np.array(wavform).reshape(-1, 1)
     # Compute Gramian angular fields
     gasf = GramianAngularField(method='summation')
     X_gasf = gasf.fit_transform(X)

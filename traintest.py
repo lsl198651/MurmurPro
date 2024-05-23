@@ -89,16 +89,16 @@ def train_test(
 
         for data_t, label_t, index_t in train_loader:  # , feat, embeding
 
-            for i in range(len(data_t)):
-                gaf = get_GramianAngularField(data_t[i].numpy())
-                train_Gramian_feature.append(gaf)
-            Gramian_feature = torch.tensor(
-                np.array(train_Gramian_feature), dtype=torch.float32)
-            train_Gramian_feature = []
-            Gramian_feature, label_t,  index_t = Gramian_feature.to(
+            # for i in range(len(data_t)):
+            #     gaf = get_GramianAngularField(data_t[i].numpy())
+            #     train_Gramian_feature.append(gaf)
+            # Gramian_feature = torch.tensor(
+            #     np.array(train_Gramian_feature), dtype=torch.float32)
+            # train_Gramian_feature = []
+            data_t, label_t,  index_t = data_t.to(
                 device), label_t.to(device),  index_t.to(device)  # , feat.to(device)  # , embedings.to(device)
             # with autocast(device_type='cuda', dtype=torch.float16):# 这函数害人呀，慎用
-            predict_t = model(Gramian_feature)  #
+            predict_t = model(data_t)  #
             loss = loss_fn(
                 predict_t, label_t.long())
             optimizer.zero_grad()
@@ -128,17 +128,17 @@ def train_test(
         with torch.no_grad():
             for data_v, label_v, index_v in test_loader:
 
-                for i in range(len(data_v)):
-                    gaf = get_GramianAngularField(data_v[i].numpy())
-                    train_Gramian_feature.append(gaf)
-                Gramian_feature = torch.tensor(
-                    np.array(train_Gramian_feature), dtype=torch.float32)
-                train_Gramian_feature = []
-                Gramian_feature, label_v, index_v = \
-                    Gramian_feature.to(device), label_v.to(device), index_v.to(
+                # for i in range(len(data_v)):
+                #     gaf = get_GramianAngularField(data_v[i].numpy())
+                #     train_Gramian_feature.append(gaf)
+                # Gramian_feature = torch.tensor(
+                #     np.array(train_Gramian_feature), dtype=torch.float32)
+                # train_Gramian_feature = []
+                data_v, label_v, index_v = \
+                    data_v.to(device), label_v.to(device), index_v.to(
                         device)  # , feat_v.to(device)
                 optimizer.zero_grad()
-                predict_v = model(Gramian_feature)
+                predict_v = model(data_v)
                 loss_v = loss_fn(predict_v, label_v.long())
                 # get the index of the max log-probability
                 pred_v = predict_v.max(1, keepdim=True)[1]
