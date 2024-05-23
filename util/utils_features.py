@@ -10,6 +10,7 @@ import librosa.display
 import numpy as np
 from util.helper_code import *
 from pyts.image import GramianAngularField, MarkovTransitionField
+import PIL.Image as pil_image
 
 
 def get_mfcc(wavform):
@@ -56,7 +57,10 @@ def get_GramianAngularField(wavform):
     # Compute Gramian angular fields
     gasf = GramianAngularField(method='summation')
     X_gasf = gasf.fit_transform(X)
-    return X_gasf[0]
+    img = pil_image.fromarray(X_gasf[0])
+    image = img.resize((100, 100), resample=pil_image.BICUBIC)
+    image = np.array(image)
+    return image
 
 
 def get_sample_entropy(wavform):
