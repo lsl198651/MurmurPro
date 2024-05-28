@@ -9,6 +9,8 @@ from model.resnet6v2.se_resnet import se_resnet6
 from traintest import train_test
 from util.utils_dataloader import fold5_dataloader
 from util.utils_train import logger_init, DatasetClass
+from model.senet.my_resnet import My_ResNet
+from model.resnet6v2.se_resnet import SEBasicBlock
 # from util.dataloaders import get_features
 # from model.model_sknet import AudioClassifier
 # from BEATs import BEATs_Pre_Train_itere3
@@ -86,7 +88,7 @@ if __name__ == '__main__':
     testset_size = test_label.shape[0]
     # ========================/ setup padding /========================== #
     # MyModel = AudioClassifier()
-    MyModel = se_resnet6()
+    MyModel = My_ResNet(SEBasicBlock, [1, 1])
     # MyModel = MyResnet18()
     # ========================/ setup optimizer /========================== #
     if not args.train_total:       # tmd 谁给我这么写的！！！！！！

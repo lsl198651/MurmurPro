@@ -255,6 +255,7 @@ class My_ResNet(nn.Module):
             source: torch.Tensor,
     ) -> torch.Tensor:
         fbanks = []
+        mfccs=[]
         # mel = T.MelSpectrogram(sample_rate=4000, n_fft=512,
         #                        win_length=100, f_min=10, f_max=1000, n_mels=128)
         for waveform in source:
@@ -262,18 +263,26 @@ class My_ResNet(nn.Module):
             # mel = mel.to('cuda')
             # melspec = mel(waveform)
             # logfbank = T.AmplitudeToDB()(melspec)
+            # mfcc
+            
             fbank = ta_kaldi.fbank(
                 waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
             fbank_mean = fbank.mean()
             fbank_std = fbank.std()
             fbank = (fbank - fbank_mean) / fbank_std
             fbanks.append(fbank)
+            mfcc = ta_kaldi.mfcc(waveform, num_ceps=40, sample_frequency=4000)
+            mfcc_std = mfcc.std()
+            mfcc_mean = mfcc.mean()
+            mfcc = (mfcc - mfcc_mean) / mfcc_std
+            mfccs.append(mfcc)
         fbank = torch.stack(fbanks, dim=0)
-        return fbank
+        mfcc = torch.stack(mfccs, dim=0)
+        return fbank, mfcc
 
     def forward(self, x: Tensor) -> Tensor:
         # See note [TorchScript super()]
-        # x = self.preprocess(x)
+        # x,y = self.preprocess(x)
         x = x.unsqueeze(1)
         x = self.conv1(x)
         x = self.bn1(x)
@@ -286,6 +295,7 @@ class My_ResNet(nn.Module):
         # x = self.dp2(x)
         x = self.layer2(x)
         x = self.avgpool(x)
+        
         x = x.view(x.shape[0], -1)
         # xall = torch.cat((x, x1), dim=1)
         x = self.fc(x)
