@@ -338,9 +338,7 @@ def data_set(root_path):
     if not os.path.exists(index_path):
         os.makedirs(index_path)
     for k in range(5):
-        mel_list = []
-        gaf_list = []
-        mtf_list = []
+
         src_fold_root_path = root_path+r"\fold_set_"+str(k)
         # TODO 是否做数据增强
         # data_Auge(src_fold_root_path)
@@ -353,6 +351,7 @@ def data_set(root_path):
                 wav, label, _, index, data_id, _ = get_wav_data(
                     dataset_path, data_id)  # absent
             print("now is getting feature ...")
+            gaf_list = []
             for i in range(len(wav)):
                 # 计算logmel
                 # mel = get_logmel_feature(wav[i])

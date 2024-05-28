@@ -17,12 +17,12 @@ from util.utils_train import logger_init, DatasetClass
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--batch_size", type=int, default=1024,
+    parser.add_argument("--batch_size", type=int, default=512,
                         help="args.batch_size for training")
     parser.add_argument("--learning_rate", type=float,
-                        default=0.005, help="learning_rate for training")
+                        default=0.05, help="learning_rate for training")
     parser.add_argument("--num_epochs", type=int,
-                        default=50, help="num_epochs")
+                        default=100, help="num_epochs")
     parser.add_argument("--layers", type=int, default=3, help="layers number")
     parser.add_argument("--loss_type", type=str, default="FocalLoss",
                         help="loss function", choices=["CE", "FocalLoss"])
@@ -69,13 +69,13 @@ if __name__ == '__main__':
         Data_sampler = WeightedRandomSampler(
             weights, num_samples=len(weights), replacement=True)
         train_loader = DataLoader(DatasetClass(wavlabel=train_label, wavdata=train_features, wavidx=train_index),
-                                  sampler=Data_sampler, batch_size=args.batch_size, drop_last=True,  pin_memory=True, num_workers=2)
+                                  sampler=Data_sampler, batch_size=args.batch_size, drop_last=True,  pin_memory=True, num_workers=4)
     else:
         train_loader = DataLoader(DatasetClass(wavlabel=train_label, wavdata=train_features, wavidx=train_index),
-                                  batch_size=args.batch_size, drop_last=True, shuffle=True, pin_memory=True, num_workers=2)
+                                  batch_size=args.batch_size, drop_last=True, shuffle=True, pin_memory=True, num_workers=4)
 
-    val_loader = DataLoader(DatasetClass(wavlabel=test_label, wavdata=test_features, wavidx=test_index),
-                            batch_size=1, shuffle=False, pin_memory=True, num_workers=2)
+    val_loader = DataLoader(DatasetClass(wavlabel=test_label, wavdata=test_features,
+                            wavidx=test_index), batch_size=1, shuffle=True, pin_memory=True, num_workers=4)
 
     # ========================/ dataset size /========================== #
     train_present_size = np.sum(train_label == 1)

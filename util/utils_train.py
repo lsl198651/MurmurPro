@@ -63,7 +63,7 @@ class DatasetClass(Dataset):
         # embeding = self.wavebd[index]
         # embeding = 1  # fake
         # wide_feat = hand_fea((dataitem, 4000))
-        return dataitem.float(), labelitem, iditem  # , wide_feat, embeding
+        return dataitem, labelitem, iditem  # , wide_feat, embeding
 
     def __len__(self):
         # 返回文件数据的数目

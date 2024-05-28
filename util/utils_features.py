@@ -58,7 +58,7 @@ def get_GramianAngularField(wavform):
     gasf = GramianAngularField(method='summation')
     X_gasf = gasf.fit_transform(X)
     img = pil_image.fromarray(X_gasf[0])
-    image = img.resize((100, 100), resample=pil_image.BICUBIC)
+    image = img.resize((150, 150), resample=pil_image.BICUBIC)
     image = np.array(image)
     return image
 
