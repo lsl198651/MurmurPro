@@ -133,31 +133,31 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
             npy_path_padded + f"\\absent_name_norm01_fold{k}.npy", allow_pickle=True)
         present_test_names = np.load(
             npy_path_padded + f"\\present_name_norm01_fold{k}.npy", allow_pickle=True)
-    # else:
-    #     for i in range(len(test_fold)):
-    #         k = test_fold[i]
-    #         absent_test_index = np.load(
-    #             npy_path_padded + f"\\absent_index_norm01_fold{k}.npy", allow_pickle=True)
-    #         present_test_index = np.load(
-    #             npy_path_padded + f"\\present_index_norm01_fold{k}.npy", allow_pickle=True)
-    #         absent_test_names = np.load(
-    #             npy_path_padded + f"\\absent_name_norm01_fold{k}.npy", allow_pickle=True)
-    #         present_test_names = np.load(
-    #             npy_path_padded + f"\\present_name_norm01_fold{k}.npy", allow_pickle=True)
-    #         if i == 0:
-    #             absent_test_index_all = absent_test_index
-    #             present_test_index_all = present_test_index
-    #             absent_test_names_all = absent_test_names
-    #             present_test_names_all = present_test_names
-    #         else:
-    #             absent_test_index_all = np.concatenate(
-    #                 (absent_test_index_all, absent_test_index), axis=0)
-    #             present_test_index_all = np.concatenate(
-    #                 (present_test_index_all, present_test_index), axis=0)
-    #             absent_test_names_all = np.concatenate(
-    #                 (absent_test_names_all, absent_test_names), axis=0)
-    #             present_test_names_all = np.concatenate(
-    #                 (present_test_names_all, present_test_names), axis=0)
+    else:
+        for i in range(len(test_fold)):
+            k = test_fold[i]
+            absent_test_index = np.load(
+                npy_path_padded + f"\\absent_index_norm01_fold{k}.npy", allow_pickle=True)
+            present_test_index = np.load(
+                npy_path_padded + f"\\present_index_norm01_fold{k}.npy", allow_pickle=True)
+            absent_test_names = np.load(
+                npy_path_padded + f"\\absent_name_norm01_fold{k}.npy", allow_pickle=True)
+            present_test_names = np.load(
+                npy_path_padded + f"\\present_name_norm01_fold{k}.npy", allow_pickle=True)
+            if i == 0:
+                absent_test_index_all = absent_test_index
+                present_test_index_all = present_test_index
+                absent_test_names_all = absent_test_names
+                present_test_names_all = present_test_names
+            else:
+                absent_test_index_all = np.concatenate(
+                    (absent_test_index_all, absent_test_index), axis=0)
+                present_test_index_all = np.concatenate(
+                    (present_test_index_all, present_test_index), axis=0)
+                absent_test_names_all = np.concatenate(
+                    (absent_test_names_all, absent_test_names), axis=0)
+                present_test_names_all = np.concatenate(
+                    (present_test_names_all, present_test_names), axis=0)
 
     """可以测一下这个字典names,index组合对不对"""
     absent_test_dic = dict(zip(absent_test_names, absent_test_index))

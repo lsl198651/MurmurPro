@@ -345,10 +345,10 @@ def data_set(root_path):
         for folder in os.listdir(src_fold_root_path):
             dataset_path = os.path.join(src_fold_root_path, folder)
             if k == 0 and folder == "absent":
-                wav, label, _, index, data_id, _ = get_wav_data(
+                wav, label, names, index, data_id, _ = get_wav_data(
                     dataset_path, num=0)  # absent
             else:
-                wav, label, _, index, data_id, _ = get_wav_data(
+                wav, label, names, index, data_id, _ = get_wav_data(
                     dataset_path, data_id)  # absent
             print("now is getting feature ...")
             gaf_list = []
@@ -376,8 +376,8 @@ def data_set(root_path):
                     f"\\{folder}_labels_norm01_fold{k}.npy", label)
             np.save(npy_path_padded +
                     f"\\{folder}_index_norm01_fold{k}.npy", index)
-            # np.save(npy_path_padded +
-            #         f"\\{folder}_name_norm01_fold{k}.npy", names)
+            np.save(npy_path_padded +
+                    f"\\{folder}_name_norm01_fold{k}.npy", names)
             # np.save(npy_path_padded +
             #         f"\\{folder}_feat_norm01_fold{k}.npy", feat)
             # absent_train_dic = zip(index, names, feat)
