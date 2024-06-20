@@ -167,10 +167,11 @@ def train_test(
         # --------------------------------------------------------
         pd.DataFrame(error_index).to_csv(error_index_path+"/epoch" +
                                          str(epochs+1)+".csv", index=False, header=False)
-        location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(
-            result_list_present, args.test_fold, args.setType)  #
-        test_patient_input, test_patient_target = torch.as_tensor(
-            patient_output), torch.as_tensor(patient_target)
+        # location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(
+        #     result_list_present, args.test_fold, args.setType)  #
+        test_patient_input, test_patient_target = 1, 1
+        # torch.as_tensor(
+        #     patient_output), torch.as_tensor(patient_target)
         test_patient_auprc = binary_auprc(
             test_patient_input, test_patient_target)
         test_patient_auroc = binary_auroc(

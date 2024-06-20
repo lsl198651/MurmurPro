@@ -74,3 +74,5 @@ def forward(self, x, padding_mask: torch.Tensor = None):
 
 1. make dataset
 2. save as npy file
+
+> 在部分场景下，使用索引计算患者的准确率会导致加载速度变慢，可以选择性进行计算，但是要保存结果以便后续计算
