@@ -272,19 +272,14 @@ class My_ResNet(nn.Module):
             fbank_std = fbank.std()
             fbank = (fbank - fbank_mean) / fbank_std
             freqm = TT.FrequencyMasking(freq_mask_param=15)
-            fbank = torch.transpose(fbank, 0, 1)
+            # timem = TT.TimeMasking(time_mask_param=15)
+            # fbank = torch.transpose(fbank, 0, 1)
             # this is just to satisfy new torchaudio version, which only accept [1, freq, time]
-            fbank = fbank.unsqueeze(0)
+            # fbank = fbank.unsqueeze(0)
             fbank = freqm(fbank)
             fbanks.append(fbank)
-            mfcc = ta_kaldi.mfcc(waveform, num_ceps=23, sample_frequency=4000)
-            mfcc_std = mfcc.std()
-            mfcc_mean = mfcc.mean()
-            mfcc = (mfcc - mfcc_mean) / mfcc_std
-            mfccs.append(mfcc)
         fbank = torch.stack(fbanks, dim=0)
-        mfcc = torch.stack(mfccs, dim=0)
-        return torch.cat((fbank, mfcc), 2)
+        return fbank
 
     def forward(self, x: Tensor) -> Tensor:
         # See note [TorchScript super()]
