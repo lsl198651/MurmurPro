@@ -272,7 +272,7 @@ class My_ResNet(nn.Module):
             fbank_mean = fbank.mean()
             fbank_std = fbank.std()
             fbank = (fbank - fbank_mean) / fbank_std
-            timem = TT.TimeMasking(time_mask_param=10)
+            timem = TT.TimeMasking(time_mask_param=25)
             # timem = TT.TimeMasking(time_mask_param=15)
             # fbank = torch.transpose(fbank, 0, 1)
             # this is just to satisfy new torchaudio version, which only accept [1, freq, time]
