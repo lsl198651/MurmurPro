@@ -156,6 +156,7 @@ class My_ResNet(nn.Module):
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
+        args=None,
     ) -> None:
         super().__init__()
         # _log_api_usage_once(self)

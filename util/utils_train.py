@@ -122,7 +122,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
         _type_: _description_
     """
     npy_path_padded = r"D:\Shilong\murmur\01_dataset" + \
-        set_type+r"\npyFile_padded\npy_files01_norm_gaf"
+        set_type+r"\npyFile_padded\npy_files01"
     # if len(test_fold) == 1:
     for k in test_fold:
         absent_test_index = np.load(
