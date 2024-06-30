@@ -1,4 +1,5 @@
 # from functools import partial
+from calendar import timegm
 from typing import Callable, List, Optional, Type, Union
 from numpy import fmin
 
@@ -271,12 +272,12 @@ class My_ResNet(nn.Module):
             fbank_mean = fbank.mean()
             fbank_std = fbank.std()
             fbank = (fbank - fbank_mean) / fbank_std
-            freqm = TT.FrequencyMasking(freq_mask_param=15)
+            timem = TT.TimeMasking(time_mask_param=10)
             # timem = TT.TimeMasking(time_mask_param=15)
             # fbank = torch.transpose(fbank, 0, 1)
             # this is just to satisfy new torchaudio version, which only accept [1, freq, time]
             # fbank = fbank.unsqueeze(0)
-            fbank = freqm(fbank)
+            fbank = timem(fbank)
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
