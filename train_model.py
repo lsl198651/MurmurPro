@@ -44,7 +44,7 @@ if __name__ == '__main__':
                         help="use balanced sampler", choices=[True, False],)
     # TODO 改模型名字
     parser.add_argument(
-        "--model", type=str, default="Gramian_feature + se_resnet6v2  4k  samplerWeight[1,5] lr=0.05,32,64 channel reductiom=8 with different lr ")
+        "--model", type=str, default="Gramian_feature(150*150) + se_resnet6v2  4k  samplerWeight[1,5] lr=0.05,32,64 channel reductiom=8 with different lr ")
     parser.add_argument("--ap_ratio", type=float, default=1.0,
                         help="ratio of absent and present")
     parser.add_argument("--beta", type=float, default=(0.9, 0.98), help="beta")
