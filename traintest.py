@@ -14,7 +14,7 @@ import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 # from util.BEATs_def import Log_GF
 # , get_segment_target_list, FocalLoss_VGG
-from util.utils_features import get_GramianAngularField
+from util.utils_features import  getMelFeaturesAndFreq
 from util.utils_train import FocalLoss, segment_classifier
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, binary_accuracy, binary_precision, binary_recall
 
@@ -73,9 +73,6 @@ def train_test(
         loss_fn = nn.CrossEntropyLoss()  # 内部会自动加上Softmax层,weight=normedWeights
     elif args.loss_type == "FocalLoss":
         loss_fn = FocalLoss()
-    # embedding1 = nn.Embedding(5, 10)  # 5个类别，每个类别用10维向量表示
-    # embedding2 = nn.Embedding(2, 10)  # 2个类别，每个类别用10维向量表示
-    # embedding3 = nn.Embedding(2, 10)
 # ============ training ================
     for epochs in range(args.num_epochs):
         # train model
@@ -85,19 +82,18 @@ def train_test(
         train_len = 0
         input_train = []
         target_train = []
-        train_Gramian_feature = list()
+        train_melFrqe = list()
 
-        for data_t, label_t, index_t in train_loader:  # , feat, embeding
+        for data_t, label_t, index_t in train_loader:
+              # , feat, embeding
+            for i in range(len(data_t)):
+                melFrqe=getMelFeaturesAndFreq(data_t[i].numpy())
+                train_melFrqe.append(melFrqe)             
+            melFrqe_feature = torch.tensor(np.array(train_melFrqe), dtype=torch.float32)
+            train_melFrqe = [] 
 
-            # for i in range(len(data_t)):
-            #     gaf = get_GramianAngularField(data_t[i].numpy())
-            #     train_Gramian_feature.append(gaf)
-            # Gramian_feature = torch.tensor(
-            #     np.array(train_Gramian_feature), dtype=torch.float32)
-            # train_Gramian_feature = []
-            data_t, label_t,  index_t = data_t.to(
-                device), label_t.to(device),  index_t.to(device)  # , feat.to(device)  # , embedings.to(device)
-            # with autocast(device_type='cuda', dtype=torch.float16):# 这函数害人呀，慎用
+            data_t, label_t,  index_t = melFrqe_feature.to(
+                device), label_t.to(device),  index_t.to(device) 
             predict_t = model(data_t)  #
             loss = loss_fn(
                 predict_t, label_t.long())
@@ -116,7 +112,6 @@ def train_test(
         train_input, train_target = torch.as_tensor(
             input_train), torch.as_tensor(target_train)
         train_acc = binary_accuracy(train_input, train_target)
-        # print(f"train_acc:{train_acc:.2%}")
         # ============ evalue ================
         model.eval()
         label = []
@@ -136,7 +131,7 @@ def train_test(
                 # train_Gramian_feature = []
                 data_v, label_v, index_v = \
                     data_v.to(device), label_v.to(device), index_v.to(
-                        device)  # , feat_v.to(device)
+                        device) 
                 optimizer.zero_grad()
                 predict_v = model(data_v)
                 loss_v = loss_fn(predict_v, label_v.long())
@@ -233,11 +228,3 @@ def train_test(
         logging.info(f"patient_auroc:{test_patient_auroc:.3f}")
         logging.info(f"patient_auprc:{test_patient_auprc:.3f}")
         logging.info(f"best_acc:{best_acc:.2%}")
-        # 画混淆矩阵
-        # draw_confusion_matrix(
-        #     test_cm.numpy(),
-        #     ["Absent", "Present"],
-        #     "epoch" + str(epochs + 1) + ",testacc: {:.3%}".format(test_acc),
-        #     pdf_save_path=confusion_matrix_path,
-        #     epoch=epochs + 1,
-        # )

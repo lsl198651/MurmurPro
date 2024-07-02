@@ -11,7 +11,67 @@ import numpy as np
 from util.helper_code import *
 from pyts.image import GramianAngularField, MarkovTransitionField
 import PIL.Image as pil_image
+from scipy.signal import butter, lfilter
+import pywt
 
+
+def getMelFeaturesAndFreq(recording_features, targetFreq=4000):
+    Mel_Spectrum = Mel_Time_Frequency_Spectrum(recording_features, targetFreq)
+    recording_features = bandpass_filter(
+        recording_features, 10, 400, targetFreq, 6)
+    Mel_Spectrum2 = Mel_Time_Frequency_Spectrum_2(
+        recording_features, targetFreq)
+    Mel_Spectrum = np.concatenate(
+        [Mel_Spectrum[:, :-1], Mel_Spectrum2], axis=0)
+
+    return Mel_Spectrum,
+
+
+################################################################################
+# mel time_fre spectrum
+################################################################################
+def Mel_Time_Frequency_Spectrum(signal, Fs=4000):
+
+    EPS = 1E-6
+    melspectrogram = librosa.feature.melspectrogram(y=signal, sr=Fs, n_mels=16,
+                                                    hop_length=8, win_length=20)
+    lms = np.log(melspectrogram + EPS)
+    return lms
+
+
+def myDownSample_2d(data, sample_Fs, targetFreq):
+    step = sample_Fs // targetFreq
+    newData = np.array([data[:, i] for i in range(
+        data.shape[1]) if i % step == 0]).transpose([1, 0])
+    return newData
+
+
+def Mel_Time_Frequency_Spectrum_2(signal, Fs):
+    EPS = 1E-6
+    coef, freqs = pywt.cwt(signal, np.arange(1, 17), 'cgau3')
+    coef = np.abs(coef)
+    coef = myDownSample_2d(coef, Fs, Fs/8)
+    lms = np.log(coef + EPS)
+    return lms
+
+
+def bandpass_filter(data, lowcut, highcut, signal_freq, filter_order):
+    """
+    Method responsible for creating and applying Butterworth filter.
+    :param deque data: raw data
+    :param float lowcut: filter lowcut frequency value
+    :param float highcut: filter highcut frequency value
+    :param int signal_freq: signal frequency in samples per second (Hz)
+    :param int filter_order: filter order
+    :return array: filtered data
+    """
+    nyquist_freq = 0.5 * signal_freq
+    low = lowcut / nyquist_freq
+    high = highcut / nyquist_freq
+    # print(low,high)
+    b, a = butter(filter_order, [low, high], btype="band")
+    y = lfilter(b, a, data)
+    return y
 
 def get_mfcc(wavform):
     """提取wav的mfcc特征
