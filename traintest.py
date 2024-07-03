@@ -14,7 +14,7 @@ import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 # from util.BEATs_def import Log_GF
 # , get_segment_target_list, FocalLoss_VGG
-from util.utils_features import  getMelFeaturesAndFreq
+from util.utils_features import getMelFeaturesAndFreq
 from util.utils_train import FocalLoss, segment_classifier
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, binary_accuracy, binary_precision, binary_recall
 
@@ -85,15 +85,16 @@ def train_test(
         train_melFrqe = list()
 
         for data_t, label_t, index_t in train_loader:
-              # , feat, embeding
+            # , feat, embeding
             for i in range(len(data_t)):
-                melFrqe=getMelFeaturesAndFreq(data_t[i].numpy())
-                train_melFrqe.append(melFrqe)             
-            melFrqe_feature = torch.tensor(np.array(train_melFrqe), dtype=torch.float32)
-            train_melFrqe = [] 
+                melFrqe = getMelFeaturesAndFreq(data_t[i].numpy())
+                train_melFrqe.append(melFrqe)
+            melFrqe_feature = torch.tensor(
+                np.array(train_melFrqe), dtype=torch.float32)
+            train_melFrqe = []
 
             data_t, label_t,  index_t = melFrqe_feature.to(
-                device), label_t.to(device),  index_t.to(device) 
+                device), label_t.to(device),  index_t.to(device)
             predict_t = model(data_t)  #
             loss = loss_fn(
                 predict_t, label_t.long())
@@ -120,18 +121,20 @@ def train_test(
         result_list_present = []
         test_loss = 0
         correct_v = 0
+        test_melFrqe = list()
         with torch.no_grad():
             for data_v, label_v, index_v in test_loader:
 
-                # for i in range(len(data_v)):
-                #     gaf = get_GramianAngularField(data_v[i].numpy())
-                #     train_Gramian_feature.append(gaf)
-                # Gramian_feature = torch.tensor(
-                #     np.array(train_Gramian_feature), dtype=torch.float32)
-                # train_Gramian_feature = []
+                for i in range(len(data_v)):
+                    melFrqe = getMelFeaturesAndFreq(data_v[i].numpy())
+                    test_melFrqe.append(melFrqe)
+                melFrqe_feature = torch.tensor(
+                    np.array(test_melFrqe), dtype=torch.float32)
+                test_melFrqe = []
+
                 data_v, label_v, index_v = \
-                    data_v.to(device), label_v.to(device), index_v.to(
-                        device) 
+                    melFrqe_feature.to(device), label_v.to(device), index_v.to(
+                        device)
                 optimizer.zero_grad()
                 predict_v = model(data_v)
                 loss_v = loss_fn(predict_v, label_v.long())

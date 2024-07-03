@@ -34,7 +34,7 @@ def Mel_Time_Frequency_Spectrum(signal, Fs=4000):
 
     EPS = 1E-6
     melspectrogram = librosa.feature.melspectrogram(y=signal, sr=Fs, n_mels=16,
-                                                    hop_length=8, win_length=20)
+                                                    hop_length=8, win_length=20, n_fft=256)
     lms = np.log(melspectrogram + EPS)
     return lms
 
@@ -72,6 +72,7 @@ def bandpass_filter(data, lowcut, highcut, signal_freq, filter_order):
     b, a = butter(filter_order, [low, high], btype="band")
     y = lfilter(b, a, data)
     return y
+
 
 def get_mfcc(wavform):
     """提取wav的mfcc特征

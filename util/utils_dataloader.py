@@ -11,7 +11,7 @@ from util.utils_features import get_GramianAngularField
 def get_features(train_fold: list, test_fold: list, set_type: str):
     # npy_path_padded = r"D:\Shilong\murmur\01_dataset\05_5fold\npyFile_padded\npy_files01"
     root_path = r"D:\Shilong\murmur\01_dataset"+set_type
-    npy_path_padded = root_path+r"\npyFile_padded\npy_files01_norm_gaf"
+    npy_path_padded = root_path+r"\npyFile_padded\npy_files01"
     train_feature_dic = {}
     train_labels_dic = {}
     train_index_dic = {}

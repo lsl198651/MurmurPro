@@ -46,7 +46,7 @@ if __name__ == '__main__':
                         help="use balanced sampler", choices=[True, False],)
     # TODO 改模型名字
     parser.add_argument(
-        "--model", type=str, default="fbank(freqmask=15) + se_resnet6v2  4k  samplerWeight[1,5] lr=0.05,32,64 channel reductiom=8 ")
+        "--model", type=str, default="time and freq  + se_resnet6v2  4k  samplerWeight[1,5] lr=0.05,32,64 channel reductiom=8 ")
     parser.add_argument("--ap_ratio", type=float, default=1.0,
                         help="ratio of absent and present")
     parser.add_argument("--beta", type=float, default=(0.9, 0.98), help="beta")
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     parser.add_argument("--train_fold", type=list,
                         default=['0', '1', '2', '4'])
     parser.add_argument("--test_fold", type=list, default=['3'])
-    parser.add_argument("--setType", type=str, default=r"\12_baseset_4k")
+    parser.add_argument("--setType", type=str, default=r"\13_baseset_4s_4k")
     parser.add_argument("--model_folder", type=str,
                         default=r"D:\Shilong\murmur\00_Code\LM\beats1\SE_ResNet6\MyModels")
     args = parser.parse_args()
