@@ -18,7 +18,7 @@ import pywt
 def getMelFeaturesAndFreq(recording_features, targetFreq=4000):
     Mel_Spectrum = Mel_Time_Frequency_Spectrum(recording_features, targetFreq)
     recording_features = bandpass_filter(
-        recording_features, 10, 400, targetFreq, 6)
+        recording_features, 10, 1000, targetFreq, 6)
     Mel_Spectrum2 = Mel_Time_Frequency_Spectrum_2(
         recording_features, targetFreq)
     Mel_Spectrum = np.concatenate(
