@@ -14,7 +14,7 @@ import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 # from util.BEATs_def import Log_GF
 # , get_segment_target_list, FocalLoss_VGG
-from util.utils_features import  getMelFeaturesAndFreq
+from util.utils_features import mixup_data, mixup_criterion
 from util.utils_train import FocalLoss, segment_classifier
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, binary_accuracy, binary_precision, binary_recall
 
@@ -23,8 +23,10 @@ def train_test(
     model,
     train_loader,
     test_loader,
-    optimizer=None,
-    args=None,
+    optimizer_centloss,
+    optimizer,
+    center_loss, alpha, weight_center, criterion, use_cuda,
+    args,
 ):
     error_index_path = r"./error_index/" + \
         str(datetime.now().strftime("%Y-%m%d %H%M"))
@@ -70,9 +72,9 @@ def train_test(
     if args.loss_type == "CE":
         normedWeights = [1, 5]
         normedWeights = torch.FloatTensor(normedWeights).to(device)
-        loss_fn = nn.CrossEntropyLoss()  # 内部会自动加上Softmax层,weight=normedWeights
+        criterion = nn.CrossEntropyLoss()  # 内部会自动加上Softmax层,weight=normedWeights
     elif args.loss_type == "FocalLoss":
-        loss_fn = FocalLoss()
+        criterion = FocalLoss()
 # ============ training ================
     for epochs in range(args.num_epochs):
         # train model
@@ -85,24 +87,32 @@ def train_test(
         train_melFrqe = list()
 
         for data_t, label_t, index_t in train_loader:
-              # , feat, embeding
-            for i in range(len(data_t)):
-                melFrqe=getMelFeaturesAndFreq(data_t[i].numpy())
-                train_melFrqe.append(melFrqe)             
-            melFrqe_feature = torch.tensor(np.array(train_melFrqe), dtype=torch.float32)
-            train_melFrqe = [] 
+            # , feat, embeding
 
-            data_t, label_t,  index_t = melFrqe_feature.to(
+            # generate mixed inputs, two one-hot label vectors and mixing coefficient
+            inputs, targets_a, targets_b, lam = mixup_data(
+                data_t, label_t, alpha, use_cuda)
+            loss_func = mixup_criterion(targets_a, targets_b, lam)
+            data_t, label_t,  index_t = inputs.to(
                 device), label_t.to(device),  index_t.to(device) 
-            predict_t = model(data_t)  #
-            loss = loss_fn(
-                predict_t, label_t.long())
+            feature, outputs = model(data_t)  #
+
+            loss_focal = loss_func(criterion, outputs)
+            loss_center = weight_center * center_loss(feature, label_t.long())
+            loss = loss_focal + loss_center
             optimizer.zero_grad()
+            optimizer_centloss.zero_grad()
             loss.backward()
             optimizer.step()
-            train_loss += loss.item()
+
+            for param in center_loss.parameters():
+                param.grad.data *= (1. / weight_center)
+            optimizer_centloss.step()
+
+            batch_loss = loss.detach().cpu().numpy()
+            total_loss += batch_loss
             # get the index of the max log-probability
-            pred_t = predict_t.max(1, keepdim=True)[1]
+            pred_t = outputs.max(1, keepdim=True)[1]
             pred_t = pred_t.squeeze(1)
             input_train.extend(pred_t.cpu().tolist())
             target_train.extend(label_t.cpu().tolist())

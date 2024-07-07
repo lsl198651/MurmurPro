@@ -301,4 +301,4 @@ class My_ResNet(nn.Module):
         # xall = torch.cat((x, x1), dim=1)
         x = self.fc(x)
 
-        return x
+        return x, y

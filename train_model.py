@@ -11,6 +11,7 @@ from util.utils_dataloader import fold5_dataloader
 from util.utils_train import logger_init, DatasetClass
 from model.senet.my_resnet import My_ResNet
 from model.resnet6v2.se_resnet import SEBasicBlock
+from util.center_loss import CenterLoss
 # from util.dataloaders import get_features
 # from model.model_sknet import AudioClassifier
 # from BEATs import BEATs_Pre_Train_itere3
@@ -99,6 +100,12 @@ if __name__ == '__main__':
     else:
         optimizer = torch.optim.AdamW(
             MyModel.parameters(), lr=args.learning_rate, betas=args.beta)
+    murmur_mixup_alpha = 0.1
+    certerloss_feature_size = 64
+    use_cuda = torch.cuda.is_available()
+    center_loss = CenterLoss(
+        num_classes=2, feat_dim=certerloss_feature_size, use_gpu=use_cuda)
+    optimizer_centloss = torch.optim.SGD(center_loss.parameters(), lr=0.5)
     # ========================/ setup scaler /========================== #
     # import torch
     # print(torch.__version__)
@@ -128,5 +135,11 @@ if __name__ == '__main__':
         train_loader=train_loader,
         test_loader=val_loader,
         optimizer=optimizer,
+        optimizer_centloss=optimizer_centloss,
+        use_cuda=use_cuda,
+        center_loss=center_loss,
+        num_epochs=args.num_epochs,
+        alpha=murmur_mixup_alpha,
+        weight_center=0.1,       
         args=args,
     )
