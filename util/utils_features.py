@@ -22,7 +22,7 @@ def getMelFeaturesAndFreq(recording_features, targetFreq=4000):
     Mel_Spectrum2 = Mel_Time_Frequency_Spectrum_2(
         recording_features, targetFreq)
     Mel_Spectrum = np.concatenate(
-        [Mel_Spectrum[:, :-1], Mel_Spectrum2], axis=0)
+        [Mel_Spectrum[:, :-1], Mel_Spectrum2], axis=1)
 
     return Mel_Spectrum,
 
@@ -33,8 +33,8 @@ def getMelFeaturesAndFreq(recording_features, targetFreq=4000):
 def Mel_Time_Frequency_Spectrum(signal, Fs=4000):
 
     EPS = 1E-6
-    melspectrogram = librosa.feature.melspectrogram(y=signal, sr=Fs, n_mels=16,
-                                                    hop_length=8, win_length=20, n_fft=256)
+    melspectrogram = librosa.feature.melspectrogram(y=signal, sr=Fs, n_mels=128,  # 25ms窗长，10ms帧移
+                                                    hop_length=40, win_length=100, n_fft=128)
     lms = np.log(melspectrogram + EPS)
     return lms
 
@@ -48,7 +48,7 @@ def myDownSample_2d(data, sample_Fs, targetFreq):
 
 def Mel_Time_Frequency_Spectrum_2(signal, Fs):
     EPS = 1E-6
-    coef, freqs = pywt.cwt(signal, np.arange(1, 17), 'cgau3')
+    coef, freqs = pywt.cwt(signal, np.arange(1, 129), 'cgau3')
     coef = np.abs(coef)
     coef = myDownSample_2d(coef, Fs, Fs/8)
     lms = np.log(coef + EPS)

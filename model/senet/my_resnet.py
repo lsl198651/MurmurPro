@@ -200,16 +200,6 @@ class My_ResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-        # Zero-initialize the last BN in each residual branch,
-        # so that the residual branch starts with zeros, and each residual block behaves like an identity.
-        # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
-        # if zero_init_residual:
-        #     for m in self.modules():
-        #         if isinstance(m, Bottleneck) and m.bn3.weight is not None:
-        #             nn.init.constant_(m.bn3.weight, 0)  # type: ignore[arg-type]
-        #         elif isinstance(m, BasicBlock) and m.bn2.weight is not None:
-        #             nn.init.constant_(m.bn2.weight, 0)  # type: ignore[arg-type]
-
     def _make_layer(
         self,
         block: Type[Union[BasicBlock, Bottleneck]],
@@ -261,10 +251,6 @@ class My_ResNet(nn.Module):
         #                        win_length=100, f_min=10, f_max=1000, n_mels=128)
         for waveform in source:
             waveform = waveform.unsqueeze(0)
-            # mel = mel.to('cuda')
-            # melspec = mel(waveform)
-            # logfbank = T.AmplitudeToDB()(melspec)
-            # mfcc
 
             fbank = ta_kaldi.fbank(
                 waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
@@ -299,6 +285,7 @@ class My_ResNet(nn.Module):
 
         x = x.view(x.shape[0], -1)
         # xall = torch.cat((x, x1), dim=1)
+        x = torch.softmax(x, dim=1)
         x = self.fc(x)
 
         return x
