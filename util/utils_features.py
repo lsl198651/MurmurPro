@@ -24,7 +24,7 @@ def getMelFeaturesAndFreq(recording_features, targetFreq=4000):
     Mel_Spectrum = np.concatenate(
         [Mel_Spectrum[:, :-1], Mel_Spectrum2], axis=0)
 
-    return Mel_Spectrum,
+    return Mel_Spectrum
 
 
 ################################################################################
@@ -33,8 +33,9 @@ def getMelFeaturesAndFreq(recording_features, targetFreq=4000):
 def Mel_Time_Frequency_Spectrum(signal, Fs=4000):
 
     EPS = 1E-6
-    melspectrogram = librosa.feature.melspectrogram(y=signal, sr=Fs, n_mels=16,
-                                                    hop_length=8, win_length=20, n_fft=256)
+    melspectrogram = librosa.feature.melspectrogram(y=signal, sr=Fs, n_mels=128,  # 25ms窗长，10ms帧移
+                                                    hop_length=40, win_length=100, n_fft=128)
+    # melspectrogram = librosa.feature.mfcc(y=signal,sr=Fs,n_mfcc=20)
     lms = np.log(melspectrogram + EPS)
     return lms
 
