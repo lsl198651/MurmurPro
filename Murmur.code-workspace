@@ -8,8 +8,7 @@
     "[python]": {
       "editor.defaultFormatter": "ms-python.autopep8"
     },
-    "python.formatting.provider": "autopep8",
-    "editor.formatOnType": true,
+    "editor.formatOnType": false,
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
     "editor.fontFamily": "'Fira Code',Consolas, 'Courier New', monospace",
