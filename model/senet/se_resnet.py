@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 from model.senet.my_resnet import My_ResNet
 
 
@@ -19,6 +20,21 @@ class SELayer(nn.Module):
         y = self.fc(y).view(b, c, 1, 1)
         return x * y.expand_as(x)
 
+class SpatialAttention(nn.Module):
+    def __init__(self):
+        super(SpatialAttention, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=2, out_channels=1, kernel_size=7, padding=7 // 2, bias=False)
+        self.sigmoid = nn.Sigmoid()
+    def forward(self, x):
+        # 压缩通道提取空间信息
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        # 经过卷积提取空间注意力权重
+        x = torch.cat([max_out, avg_out], dim=1)
+        out = self.conv1(x)
+        # 输出非负
+        out = self.sigmoid(out)
+        return out
 
 def conv3x3(in_planes, out_planes, stride=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
@@ -49,6 +65,7 @@ class SEBasicBlock(nn.Module):
         out = self.relu(out)
         out = self.conv2(out)
         out = self.se(out)
+        self.spatial_atten = SpatialAttention()
 
         if self.downsample is not None:
             residual = self.downsample(x)

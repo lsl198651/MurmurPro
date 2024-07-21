@@ -140,14 +140,12 @@ class My_ResNet(nn.Module):
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
-
         self.inplanes = 16
         self.dilation = 2
         if replace_stride_with_dilation is None:
             replace_stride_with_dilation = [True, True]
         if len(replace_stride_with_dilation) != 2:
-            raise ValueError("replace_stride_with_dilation should be None " f"or a 3-element tuple, got {replace_stride_with_dilation}"
-            )       
+            raise ValueError("replace_stride_with_dilation should be None " f"or a 3-element tuple, got {replace_stride_with_dilation}")       
         self.groups = groups
         self.conv1 = nn.Conv2d(1, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
         self.base_width = width_per_group        

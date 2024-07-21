@@ -5,12 +5,12 @@ import logging
 import numpy as np
 from torch.utils.data.sampler import WeightedRandomSampler
 from torch.utils.data import DataLoader
-from model.resnet6v2.se_resnet import se_resnet6
+# from model.resnet6v2.se_resnet import se_resnet6
 from traintest import train_test
 from util.utils_dataloader import fold5_dataloader
 from util.utils_train import logger_init, DatasetClass
 from model.senet.my_resnet import My_ResNet
-from model.resnet6v2.se_resnet import SEBasicBlock
+from model.senet.se_resnet import SEBasicBlock
 # from util.dataloaders import get_features
 # from model.model_sknet import AudioClassifier
 # from BEATs import BEATs_Pre_Train_itere3
