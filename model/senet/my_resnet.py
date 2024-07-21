@@ -141,11 +141,11 @@ class My_ResNet(nn.Module):
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
 
-        self.inplanes = 32
-        self.dilation = 1
+        self.inplanes = 16
+        self.dilation = 2
         if replace_stride_with_dilation is None:
-            replace_stride_with_dilation = [False, False, False]
-        if len(replace_stride_with_dilation) != 3:
+            replace_stride_with_dilation = [True, True]
+        if len(replace_stride_with_dilation) != 2:
             raise ValueError("replace_stride_with_dilation should be None " f"or a 3-element tuple, got {replace_stride_with_dilation}"
             )       
         self.groups = groups
@@ -157,8 +157,8 @@ class My_ResNet(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.mp1 = nn.MaxPool2d(2)        
-        self.layer1 = self._make_layer(block, 32, layers[0])
-        self.layer2 = self._make_layer( block, 64, layers[1], stride=1, dilate=replace_stride_with_dilation[0])
+        self.layer1 = self._make_layer(block, 16, layers[0] , dilate=replace_stride_with_dilation[0])
+        self.layer2 = self._make_layer( block, 32, layers[1], stride=1, dilate=replace_stride_with_dilation[1])
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         # self.wide = nn.Linear(6, 20)
