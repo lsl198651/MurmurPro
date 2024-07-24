@@ -1,4 +1,5 @@
 import argparse
+from xmlrpc.client import boolean
 import torch
 import torch.profiler
 import logging
@@ -19,28 +20,45 @@ from model.senet.se_resnet import SEBasicBlock
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--batch_size", type=int, default=512,help="args.batch_size for training")
-    parser.add_argument("--learning_rate", type=float,default=0.005, help="learning_rate for training")
-    parser.add_argument("--num_epochs", type=int,default=100, help="num_epochs")
+    parser.add_argument("--batch_size", type=int, default=512,
+                        help="args.batch_size for training")
+    parser.add_argument("--learning_rate", type=float,
+                        default=0.005, help="learning_rate for training")
+    parser.add_argument("--num_epochs", type=int,
+                        default=100, help="num_epochs")
     parser.add_argument("--layers", type=int, default=3, help="layers number")
-    parser.add_argument("--loss_type", type=str, default="FocalLoss",help="loss function", choices=["CE", "FocalLoss"])
-    parser.add_argument("--scheduler_flag", type=str, default="step",help="the dataset used", choices=["cos", "MultiStepLR", "step"],)
-    parser.add_argument("--freqm_value",  type=int,default=0, help="frequency mask max length")
-    parser.add_argument("--timem_value", type=int,default=0, help="time mask max length")
-    parser.add_argument("--mask", type=bool, default=False,help="number of classes", choices=[True, False])
-    parser.add_argument("--trainset_balence", type=bool, default=False,help="balance absent and present in testset", choices=[True, False],)
-    parser.add_argument("--Data_Augmentation", type=bool, default=False,help="Add data augmentation", choices=[True, False],)
-    parser.add_argument("--train_total", type=bool, default=True,help="use grad_no_requiredn", choices=[True, False],)
-    parser.add_argument("--samplerWeight", type=bool, default=True,help="use balanced sampler", choices=[True, False],)
+    parser.add_argument("--loss_type", type=str, default="FocalLoss",
+                        help="loss function", choices=["CE", "FocalLoss"])
+    parser.add_argument("--scheduler_flag", type=str, default="step",
+                        help="the dataset used", choices=["cos", "MultiStepLR", "step"],)
+    parser.add_argument("--freqm_value",  type=int,
+                        default=0, help="frequency mask max length")
+    parser.add_argument("--timem_value", type=int,
+                        default=0, help="time mask max length")
+    parser.add_argument("--mask", type=bool, default=False,
+                        help="number of classes", choices=[True, False])
+    parser.add_argument("--trainset_balence", type=bool, default=False,
+                        help="balance absent and present in testset", choices=[True, False],)
+    parser.add_argument("--Data_Augmentation", type=bool, default=False,
+                        help="Add data augmentation", choices=[True, False],)
+    parser.add_argument("--train_total", type=bool, default=True,
+                        help="use grad_no_requiredn", choices=[True, False],)
+    parser.add_argument("--samplerWeight", type=bool, default=True,
+                        help="use balanced sampler", choices=[True, False],)
     # TODO 改模型名字
-    parser.add_argument("--model", type=str, default="time and freq  + se_resnet6v2  4k  samplerWeight[1,5] lr=0.05,32,64 channel reductiom=8 ")
-    parser.add_argument("--ap_ratio", type=float, default=1.0,help="ratio of absent and present")
+    parser.add_argument(
+        "--model", type=str, default="time and freq  + se_resnet6v2  4k  samplerWeight[1,5] lr=0.05,32,64 channel reductiom=8 ")
+    parser.add_argument("--ap_ratio", type=float, default=1.0,
+                        help="ratio of absent and present")
     parser.add_argument("--beta", type=float, default=(0.9, 0.98), help="beta")
     parser.add_argument("--cross_evalue", type=bool, default=False)
-    parser.add_argument("--train_fold", type=list,default=['0', '1', '2', '4'])
+    parser.add_argument("--train_fold", type=list,
+                        default=['0', '1', '2', '4'])
     parser.add_argument("--test_fold", type=list, default=['3'])
     parser.add_argument("--setType", type=str, default=r"\13_baseset_4s_4k")
-    parser.add_argument("--model_folder", type=str,default=r"D:\Shilong\murmur\00_Code\LM\beats1\SE_ResNet6\MyModels")
+    parser.add_argument("--model_folder", type=str,
+                        default=r"D:\Shilong\murmur\00_Code\LM\beats1\SE_ResNet6\MyModels")
+    parser.add_argument("--train", type=bool, default=True)
     args = parser.parse_args()
     # 检测分折重复
     for val in args.test_fold:
@@ -83,26 +101,27 @@ if __name__ == '__main__':
         optimizer = torch.optim.AdamW(
             MyModel.parameters(), lr=args.learning_rate, betas=args.beta)
     # ========================/ setup scaler /========================== #
-    logger_init()
-    logging.info(f"{args.model}  ")
-    logging.info(f"# Batch_size = {args.batch_size}")
-    logging.info(f"# Num_epochs = {args.num_epochs}")
-    logging.info(f"# Learning_rate = {args.learning_rate:.1e}")
-    logging.info(f"# lr_scheduler = {args.scheduler_flag}")
-    logging.info(f"# Loss_fn = {args.loss_type}")
-    # logging.info(f"# Data Augmentation = {args.Data_Augmentation}")
-    # logging.info(f"# Trainset_balance = {args.trainset_balence}")
-    # logging.info(f"# train_total = {args.train_total}")
-    # logging.info(f"# Masking = {args.mask}")
-    logging.info(f"# SetType = {args.setType}")
-    logging.info(f"# Train_a/p = {train_absent_size}/{train_present_size}")
-    logging.info(f"# Test_a/p = {test_absent_size}/{test_present_size}")
-    logging.info(f"# Trainset_size = {trainset_size}")
-    logging.info(f"# Testset_size = {testset_size}")
-    logging.info(f"# Train_fold = {args.train_fold}")
-    logging.info(f"# Test_fold = {args.test_fold}")
-    logging.info("# Optimizer = " + str(optimizer))
-    logging.info("# ")
+    if (args.train):
+        logger_init()
+        logging.info(f"{args.model}  ")
+        logging.info(f"# Batch_size = {args.batch_size}")
+        logging.info(f"# Num_epochs = {args.num_epochs}")
+        logging.info(f"# Learning_rate = {args.learning_rate:.1e}")
+        logging.info(f"# lr_scheduler = {args.scheduler_flag}")
+        logging.info(f"# Loss_fn = {args.loss_type}")
+        # logging.info(f"# Data Augmentation = {args.Data_Augmentation}")
+        # logging.info(f"# Trainset_balance = {args.trainset_balence}")
+        # logging.info(f"# train_total = {args.train_total}")
+        # logging.info(f"# Masking = {args.mask}")
+        logging.info(f"# SetType = {args.setType}")
+        logging.info(f"# Train_a/p = {train_absent_size}/{train_present_size}")
+        logging.info(f"# Test_a/p = {test_absent_size}/{test_present_size}")
+        logging.info(f"# Trainset_size = {trainset_size}")
+        logging.info(f"# Testset_size = {testset_size}")
+        logging.info(f"# Train_fold = {args.train_fold}")
+        logging.info(f"# Test_fold = {args.test_fold}")
+        logging.info("# Optimizer = " + str(optimizer))
+        logging.info("# ")
     train_test(
         model=MyModel,
         train_loader=train_loader,

@@ -47,9 +47,11 @@ class BasicBlock(nn.Module):
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         if groups != 1 or base_width != 64:
-            raise ValueError("BasicBlock only supports groups=1 and base_width=64")
+            raise ValueError(
+                "BasicBlock only supports groups=1 and base_width=64")
         if dilation > 1:
-            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
+            raise NotImplementedError(
+                "Dilation > 1 not supported in BasicBlock")
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = norm_layer(planes)
@@ -145,26 +147,31 @@ class My_ResNet(nn.Module):
         if replace_stride_with_dilation is None:
             replace_stride_with_dilation = [True, True]
         if len(replace_stride_with_dilation) != 2:
-            raise ValueError("replace_stride_with_dilation should be None " f"or a 3-element tuple, got {replace_stride_with_dilation}")       
+            raise ValueError(
+                "replace_stride_with_dilation should be None " f"or a 3-element tuple, got {replace_stride_with_dilation}")
         self.groups = groups
-        self.conv1 = nn.Conv2d(1, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
-        self.base_width = width_per_group        
+        self.conv1 = nn.Conv2d(
+            1, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        self.base_width = width_per_group
         self.bn1 = norm_layer(self.inplanes)
         self.dp1 = nn.Dropout(p=0.15)
         self.dp2 = nn.Dropout(p=0.1)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.mp1 = nn.MaxPool2d(2)        
-        self.layer1 = self._make_layer(block, 16, layers[0] , dilate=replace_stride_with_dilation[0])
-        self.layer2 = self._make_layer( block, 32, layers[1], stride=1, dilate=replace_stride_with_dilation[1])
+        self.mp1 = nn.MaxPool2d(2)
+        self.layer1 = self._make_layer(
+            block, 16, layers[0], dilate=replace_stride_with_dilation[0])
+        self.layer2 = self._make_layer(
+            block, 32, layers[1], stride=1, dilate=replace_stride_with_dilation[1])
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         # self.wide = nn.Linear(6, 20)
-        self.fc = nn.Linear(64, num_classes)
+        self.fc = nn.Linear(32, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+                nn.init.kaiming_normal_(
+                    m.weight, mode="fan_out", nonlinearity="relu")
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
@@ -184,9 +191,11 @@ class My_ResNet(nn.Module):
             self.dilation *= stride
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(conv1x1( self.inplanes, planes * block.expansion, stride), norm_layer(planes * block.expansion) )
+            downsample = nn.Sequential(conv1x1(
+                self.inplanes, planes * block.expansion, stride), norm_layer(planes * block.expansion))
         layers = []
-        layers.append( block( self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer ) )
+        layers.append(block(self.inplanes, planes, stride, downsample,
+                      self.groups, self.base_width, previous_dilation, norm_layer))
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
             layers.append(
@@ -201,12 +210,12 @@ class My_ResNet(nn.Module):
             )
         return nn.Sequential(*layers)
 
-
-    def preprocess( self, source: torch.Tensor  ) -> torch.Tensor:
+    def preprocess(self, source: torch.Tensor) -> torch.Tensor:
         fbanks = []
         for waveform in source:
             waveform = waveform.unsqueeze(0)
-            fbank = ta_kaldi.fbank( waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
+            fbank = ta_kaldi.fbank(
+                waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
             fbank_mean = fbank.mean()
             fbank_std = fbank.std()
             fbank = (fbank - fbank_mean) / fbank_std
@@ -216,10 +225,9 @@ class My_ResNet(nn.Module):
         fbank = torch.stack(fbanks, dim=0)
         return fbank
 
-
     def forward(self, x: Tensor) -> Tensor:
-        # x = self.preprocess(x)
-        # x = x.unsqueeze(1)
+        x = self.preprocess(x)
+        x = x.unsqueeze(1)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)

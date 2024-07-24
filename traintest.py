@@ -26,14 +26,18 @@ def train_test(
     optimizer=None,
     args=None,
 ):
-    error_index_path = r"./error_index/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
-    patient_error_index_path = r"./patient_error_index/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
+    error_index_path = r"./error_index/" + \
+        str(datetime.now().strftime("%Y-%m%d %H%M"))
+    patient_error_index_path = r"./patient_error_index/" + \
+        str(datetime.now().strftime("%Y-%m%d %H%M"))
     if not os.path.exists(error_index_path):
         os.makedirs(error_index_path)
     if not os.path.exists(patient_error_index_path):
         os.makedirs(patient_error_index_path)
-    tb_writer = SummaryWriter( r"./tensorboard/" + str(datetime.now().strftime("%Y-%m%d %H%M")))
-    confusion_matrix_path = r"./confusion_matrix/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
+    tb_writer = SummaryWriter(
+        r"./tensorboard/" + str(datetime.now().strftime("%Y-%m%d %H%M")))
+    confusion_matrix_path = r"./confusion_matrix/" + \
+        str(datetime.now().strftime("%Y-%m%d %H%M"))
     lr = []
     max_test_acc = []
     max_train_acc = []
@@ -47,13 +51,17 @@ def train_test(
     warm_up_ratio = 0.1
     total_steps = len(train_loader) * args.num_epochs
     if args.scheduler_flag == "cos":
-        scheduler = optim.lr_scheduler.CosineAnnealingLR( optimizer, T_max=10, eta_min=0)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=10, eta_min=0)
     elif args.scheduler_flag == "cos_warmup":
-        scheduler = optimization.get_cosine_schedule_with_warmup( optimizer, num_warmup_steps=warm_up_ratio * total_steps, num_training_steps=total_steps )
+        scheduler = optimization.get_cosine_schedule_with_warmup(
+            optimizer, num_warmup_steps=warm_up_ratio * total_steps, num_training_steps=total_steps)
     elif args.scheduler_flag == "step":
-        scheduler = optim.lr_scheduler.StepLR( optimizer, step_size=45, gamma=0.1)
+        scheduler = optim.lr_scheduler.StepLR(
+            optimizer, step_size=45, gamma=0.1)
     elif args.scheduler_flag == "MultiStepLR":
-        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, [40, 80], gamma=0.1)
+        scheduler = optim.lr_scheduler.MultiStepLR(
+            optimizer, [40, 80], gamma=0.1)
 # ==========loss function================
     if args.loss_type == "CE":
         normedWeights = [1, 5]
@@ -73,14 +81,15 @@ def train_test(
         train_melFrqe = list()
         for data_t, label_t, index_t in train_loader:
             # , feat, embeding
-            for i in range(len(data_t)):
-                melFrqe = getMelFeaturesAndFreq(data_t[i].numpy())
-                train_melFrqe.append(melFrqe)
-            melFrqe_feature = torch.tensor(
-                np.array(train_melFrqe), dtype=torch.float32)
-            train_melFrqe = []
+            # for i in range(len(data_t)):
+            #     melFrqe = getMelFeaturesAndFreq(data_t[i].numpy())
+            #     train_melFrqe.append(melFrqe)
+            # melFrqe_feature = torch.tensor(
+            #     np.array(train_melFrqe), dtype=torch.float32)
+            # train_melFrqe = []
 
-            data_t, label_t,  index_t = melFrqe_feature.to(device), label_t.to(device),  index_t.to(device)
+            data_t, label_t,  index_t = data_t.to(
+                device), label_t.to(device),  index_t.to(device)
             predict_t = model(data_t)  #
             loss = loss_fn(predict_t, label_t.long())
             optimizer.zero_grad()
@@ -95,7 +104,8 @@ def train_test(
             correct_t += pred_t.eq(label_t).sum().item()
             train_len += len(pred_t)
         # ------------------调库计算指标--------------------------
-        train_input, train_target = torch.as_tensor(input_train), torch.as_tensor(target_train)
+        train_input, train_target = torch.as_tensor(
+            input_train), torch.as_tensor(target_train)
         train_acc = binary_accuracy(train_input, train_target)
         # ============ evalue ================
         model.eval()
@@ -109,13 +119,14 @@ def train_test(
         with torch.no_grad():
             for data_v, label_v, index_v in test_loader:
 
-                for i in range(len(data_v)):
-                    melFrqe = getMelFeaturesAndFreq(data_v[i].numpy())
-                    test_melFrqe.append(melFrqe)
-                melFrqe_feature = torch.tensor(
-                    np.array(test_melFrqe), dtype=torch.float32)
-                test_melFrqe = []
-                data_v, label_v, index_v =melFrqe_feature.to(device), label_v.to(device), index_v.to(device)
+                # for i in range(len(data_v)):
+                #     melFrqe = getMelFeaturesAndFreq(data_v[i].numpy())
+                #     test_melFrqe.append(melFrqe)
+                # melFrqe_feature = torch.tensor(
+                #     np.array(test_melFrqe), dtype=torch.float32)
+                # test_melFrqe = []
+                data_v, label_v, index_v = data_v.to(
+                    device), label_v.to(device), index_v.to(device)
                 optimizer.zero_grad()
                 predict_v = model(data_v)
                 loss_v = loss_fn(predict_v, label_v.long())
@@ -124,8 +135,10 @@ def train_test(
                 test_loss += loss_v.item()
                 pred_v = pred_v.squeeze(1)
                 correct_v += pred_v.eq(label_v).sum().item()
-                idx_v = index_v[torch.nonzero(torch.eq(pred_v.ne(label_v), True))]
-                result_list_present.extend(index_v[torch.nonzero(torch.eq(pred_v.eq(1), True))].cpu().tolist())
+                idx_v = index_v[torch.nonzero(
+                    torch.eq(pred_v.ne(label_v), True))]
+                result_list_present.extend(index_v[torch.nonzero(
+                    torch.eq(pred_v.eq(1), True))].cpu().tolist())
                 try:
                     error_index.extend(idx_v.cpu().tolist())
                 except TypeError:
@@ -142,14 +155,22 @@ def train_test(
         test_f1 = binary_f1_score(test_input, test_target)
         test_cm = binary_confusion_matrix(test_input, test_target)
         # --------------------------------------------------------
-        pd.DataFrame(error_index).to_csv(error_index_path+"/epoch" + str(epochs+1)+".csv", index=False, header=False)
-        location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(result_list_present, args.test_fold, args.setType)  #
-        test_patient_input, test_patient_target = torch.as_tensor(patient_output), torch.as_tensor(patient_target)
-        test_patient_auprc = binary_auprc(test_patient_input, test_patient_target)
-        test_patient_auroc = binary_auroc(test_patient_input, test_patient_target)
-        test_patient_acc = binary_accuracy(test_patient_input, test_patient_target)
-        test_patient_f1 = binary_f1_score(test_patient_input, test_patient_target)
-        test_patient_cm = binary_confusion_matrix(test_patient_input, test_patient_target)
+        pd.DataFrame(error_index).to_csv(error_index_path+"/epoch" +
+                                         str(epochs+1)+".csv", index=False, header=False)
+        location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(
+            result_list_present, args.test_fold, args.setType)  #
+        test_patient_input, test_patient_target = torch.as_tensor(
+            patient_output), torch.as_tensor(patient_target)
+        test_patient_auprc = binary_auprc(
+            test_patient_input, test_patient_target)
+        test_patient_auroc = binary_auroc(
+            test_patient_input, test_patient_target)
+        test_patient_acc = binary_accuracy(
+            test_patient_input, test_patient_target)
+        test_patient_f1 = binary_f1_score(
+            test_patient_input, test_patient_target)
+        test_patient_cm = binary_confusion_matrix(
+            test_patient_input, test_patient_target)
         # 这两个算出来的都是present的
         test_PPV = binary_precision(test_patient_input, test_patient_target)
         test_TPR = binary_recall(test_patient_input, test_patient_target)
@@ -171,7 +192,8 @@ def train_test(
         max_train_acc.append(train_acc)
         max_test_acc.append(test_acc)
         max_train_acc_value = max(max_train_acc)
-        max_test_acc_value = max_test_acc[max_train_acc.index(max_train_acc_value)]
+        max_test_acc_value = max_test_acc[max_train_acc.index(
+            max_train_acc_value)]
         # tensorboard
         tb_writer.add_scalar("train_acc", train_acc, epochs)
         tb_writer.add_scalar("test_acc", test_acc, epochs)
@@ -184,7 +206,8 @@ def train_test(
         logging.info(f"epoch: {epochs + 1}/{args.num_epochs}")
         logging.info(f"learning_rate: {lr_now:.1e}")
         logging.info(f"Loss t: {train_loss:.2e} v: {test_loss:.2e}")
-        logging.info(f"max_acc t: {max_train_acc_value:.2%} v: {max_test_acc_value:.2%}")
+        logging.info(
+            f"max_acc t: {max_train_acc_value:.2%} v: {max_test_acc_value:.2%}")
         logging.info(f"lr max:{max(lr):.1e} min:{min(lr):.1e}")
         logging.info(f"train Acc: {train_acc:.2%} nvalid Acc: {test_acc:.2%}")
         logging.info(f"segment_cm:{test_cm.numpy()}")
