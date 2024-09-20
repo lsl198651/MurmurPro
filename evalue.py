@@ -22,19 +22,17 @@ from util.utils_train import FocalLoss, segment_classifier
 
 def train_test(model,
                train_loader,
-               test_loader,
+               val_loader,
                optimizer=None,
                args=None):
     global lr_now
     "声明"
     error_index_path = r"./error_index/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
     patient_error_index_path = r"./patient_error_index/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
-    if not os.path.exists(error_index_path):
-        os.makedirs(error_index_path)
-    if not os.path.exists(patient_error_index_path):
-        os.makedirs(patient_error_index_path)
+    os.makedirs(error_index_path,exist_ok=True)
+    os.makedirs(patient_error_index_path,exist_ok=True)
     tb_writer = SummaryWriter(r"./tensorboard/" + str(datetime.now().strftime("%Y-%m%d %H%M")))
-    confusion_matrix_path = r"./confusion_matrix/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
+
     lr = []
     max_test_acc = []
     max_train_acc = []
@@ -60,14 +58,11 @@ def train_test(model,
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, [40, 80], gamma=0.1)
     # ==========loss function================
     if args.loss_type == "CE":
-        normedWeights = [1, 5]
-        normedWeights = torch.FloatTensor(normedWeights).to(device)
+        normedWeight = [1, 5]
+        normedWeights = torch.FloatTensor(normedWeight).to(device)
         loss_fn = nn.CrossEntropyLoss()  # 内部会自动加上Softmax层,weight=normedWeights
     elif args.loss_type == "FocalLoss":
         loss_fn = FocalLoss()
-    # embedding1 = nn.Embedding(5, 10)  # 5个类别，每个类别用10维向量表示
-    # embedding2 = nn.Embedding(2, 10)  # 2个类别，每个类别用10维向量表示
-    # embedding3 = nn.Embedding(2, 10)
     # ============ training ================
     for epochs in range(args.num_epochs):
         # train model
@@ -119,7 +114,7 @@ def train_test(model,
         test_loss = 0
         correct_v = 0
         with torch.no_grad():
-            for data_v, label_v, index_v in test_loader:
+            for data_v, label_v, index_v in val_loader:
                 data_v, label_v, index_v = data_v.to(device), label_v.to(device), index_v.to(device)
                 optimizer.zero_grad()
                 predict_v = model(data_v)
@@ -215,10 +210,11 @@ def train_test(model,
         logging.info(f"patient_auprc:{test_patient_auprc:.3f}")
         logging.info(f"best_acc:{best_acc:.2%}")
         # ********************** 画混淆矩阵 ********************** #
-        """draw_confusion_matrix(
-            test_cm.numpy(),
-            ["Absent", "Present"],
-            "epoch" + str(epochs + 1) + ",testacc: {:.3%}".format(test_acc),
-            pdf_save_path=confusion_matrix_path,
-            epoch=epochs + 1
-        )"""
+        # confusion_matrix_path = r"./confusion_matrix/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
+        # draw_confusion_matrix(
+        #     test_cm.numpy(),
+        #     ["Absent", "Present"],
+        #     "epoch" + str(epochs + 1) + ",testacc: {:.3%}".format(test_acc),
+        #     pdf_save_path=confusion_matrix_path,
+        #     epoch=epochs + 1
+        # )

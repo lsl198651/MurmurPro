@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import WeightedRandomSampler
 
 from model.resnet6v2.se_resnet import se_resnet6
-from traintest import train_test
+from train_eval import train_test
 from util.utils_dataloader import fold5_dataloader
 from util.utils_train import logger_init, DatasetClass
 
@@ -18,6 +18,7 @@ from util.utils_train import logger_init, DatasetClass
 
 #
 if __name__ == '__main__':
+    # ========================/ 函数入口 /========================== #
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--batch_size", type=int, default=512, help="args.batch_size for training")
     parser.add_argument("--learning_rate", type=float, default=0.05, help="learning_rate for training")
@@ -48,12 +49,17 @@ if __name__ == '__main__':
     parser.add_argument("--model_folder", type=str,
                         default=r"D:\Shilong\murmur\00_Code\LM\beats1\SE_ResNet6\MyModels")
     args = parser.parse_args()
+    all_list=['0', '1', '2', '3','4']
 
-    # 检测分折重复
+    # ========================/ 检测分折重复 /========================== #
     for val in args.test_fold:
         if val in args.train_fold:
             raise ValueError("train_fold and test_fold have same fold")
+    for fold in args.all_list:
+        train_fold=all_list.remove(fold)
+        test_fold=all_list.pop(fold)
 
+    # ========================/ 加载数据集 /========================== #
     train_features, train_label, train_index, test_features, test_label, test_index = fold5_dataloader(
         args.train_fold, args.test_fold, args.Data_Augmentation, args.setType)
     # ========================/ setup loader /========================== #
@@ -80,18 +86,18 @@ if __name__ == '__main__':
                             pin_memory=True,
                             num_workers=2)
 
-    # ========================/ dataset size /========================== #
+    # ========================/ 计算数据集大小 /========================== #
     train_present_size = np.sum(train_label == 1)
     train_absent_size = np.sum(train_label == 0)
     test_present_size = np.sum(test_label == 1)
     test_absent_size = np.sum(test_label == 0)
     trainset_size = train_label.shape[0]
     testset_size = test_label.shape[0]
-    # ========================/ setup padding /========================== #
-    # MyModel = AudioClassifier()
+    # ========================/ 选择模型 /========================== #
+
     MyModel = se_resnet6()
-    # MyModel = MyResnet18()
-    # ========================/ setup optimizer /========================== #
+
+    # ========================/ 设置优化器 /========================== #
     if not args.train_total:
         for param in MyModel.BEATs.parameters():
             param.requires_grad = False
@@ -102,7 +108,7 @@ if __name__ == '__main__':
         optimizer = torch.optim.AdamW(MyModel.parameters(),
                                       lr=args.learning_rate,
                                       betas=args.beta)
-    # ========================/ setup scaler /========================== #
+    # ========================/ 打印日志 /========================== #
     # import torch
     # print(torch.__version__)
     logger_init()
@@ -124,11 +130,12 @@ if __name__ == '__main__':
     logging.info(f"# Train_fold = {args.train_fold}")
     logging.info(f"# Test_fold = {args.test_fold}")
     logging.info("# Optimizer = " + str(optimizer))
-    logging.info(
-        "# ")
+    logging.info( "# ")
+    # ========================/ 开始训练 /========================== #
+
+
     train_test(model=MyModel,
                train_loader=train_loader,
-               test_loader=val_loader,
+               val_loader=val_loader,
                optimizer=optimizer,
-               args=args,
-               )
+               args=args)
