@@ -6,22 +6,8 @@
 # 2.
 
 import os
-import shutil
-import random
-import librosa
-import matplotlib.pyplot as plt
-import librosa.display
-import soundfile
-import csv
-import numpy as np
-import pandas as pd
-from util.backup.BEATs_def import mkdir, csv_reader_cl, csv_reader_row
-import soundfile as sf
-from util.backup.BEATs_def import get_wav_data, get_patientid
-from dataAugmentation import data_Auge
-import pandas as pd
-from helper_code import *
 from utils_dataset import *
+
 # ========================/ functions define /========================== #
 
 
@@ -421,21 +407,12 @@ if __name__ == '__main__':
     if not os.path.exists(root_path):
         os.makedirs(root_path)
     # save data to csv file
-    Murmur_locations_path = root_path+r"\Murmur_locations.csv"
-    Systolic_murmur_timing_path = (
-        root_path+r"\Systolic_murmur_timing.csv"
-    )
-    Diastolic_murmur_timing_path = (
-        root_path+r"\Diastolic_murmur_timing.csv"
-    )
-    pd.DataFrame(Murmur_locations).to_csv(
-        Murmur_locations_path, index=False, header=False)
-    pd.DataFrame(Systolic_murmur_timing).to_csv(
-        Systolic_murmur_timing_path, index=False, header=False
-    )
-    pd.DataFrame(Diastolic_murmur_timing).to_csv(
-        Diastolic_murmur_timing_path, index=False, header=False
-    )
+    Murmur_locations_path = root_path + r"\Murmur_locations.csv"
+    Systolic_murmur_timing_path = (root_path + r"\Systolic_murmur_timing.csv")
+    Diastolic_murmur_timing_path = (root_path + r"\Diastolic_murmur_timing.csv")
+    pd.DataFrame(Murmur_locations).to_csv(Murmur_locations_path, index=False, header=False)
+    pd.DataFrame(Systolic_murmur_timing).to_csv(Systolic_murmur_timing_path, index=False, header=False)
+    pd.DataFrame(Diastolic_murmur_timing).to_csv(Diastolic_murmur_timing_path, index=False, header=False)
 
     # init aptient id list for absent present and unknown
     absent_patient_id = []
@@ -452,25 +429,23 @@ if __name__ == '__main__':
     for id in present_id:
         present_patient_id.append(id_data[id])
 
-    absent_id_path = root_path+r"\absent_id.csv"
-    patient_id_path = root_path+r"\patient_id.csv"
+    absent_id_path = root_path + r"\absent_id.csv"
+    patient_id_path = root_path + r"\patient_id.csv"
     # 对Present和Absent分五折
     # save patient id as csv
-    pd.DataFrame(data=absent_patient_id, index=None).to_csv(
-        absent_id_path, index=False, header=False)
-    pd.DataFrame(data=present_patient_id, index=None).to_csv(
-        patient_id_path, index=False, header=False)
+    pd.DataFrame(data=absent_patient_id, index=None).to_csv(absent_id_path, index=False, header=False)
+    pd.DataFrame(data=present_patient_id, index=None).to_csv(patient_id_path, index=False, header=False)
 
     fold_absent = fold_devide(absent_patient_id)
     fold_present = fold_devide(present_patient_id)
     # 对Present和Absent分五折
     # 分别保存每折的id
     for k, v in fold_absent.items():
-        pd.DataFrame(data=v, index=None).to_csv(
-            root_path+r"\absent_fold_"+str(k)+".csv", index=False, header=False)
+        pd.DataFrame(data=v, index=None).to_csv(root_path + r"\absent_fold_" + str(k) + ".csv", index=False,
+                                                header=False)
     for k, v in fold_present.items():
-        pd.DataFrame(data=v, index=None).to_csv(
-            root_path+r"\present_fold_"+str(k)+".csv", index=False, header=False)
+        pd.DataFrame(data=v, index=None).to_csv(root_path + r"\present_fold_" + str(k) + ".csv", index=False,
+                                                header=False)
 
     # digaiation position
     # define path options
@@ -481,12 +456,11 @@ if __name__ == '__main__':
     # TODO 修改此处的src_path
     # src_path = r"D:\Shilong\murmur\dataset_all\training_data"
     src_path = r"D:\Shilong\murmur\Dataset\PCGdataset\training_data"
-    folder_path = root_path+"\\"
+    folder_path = root_path + "\\"
 
     # 将wav文件和tsv文件copy到目标文件夹
     copy_wav_file(src_path, folder_path, absent_patient_id, "Absent", positoin)
-    copy_wav_file(src_path, folder_path,
-                  present_patient_id, "Present", positoin)
+    copy_wav_file(src_path, folder_path, present_patient_id, "Present", positoin)
 
     # 创建每个wav文件的文件夹
     for mur in murmur:
@@ -521,10 +495,10 @@ if __name__ == '__main__':
         Diastolic_murmur_timing,
     )
 
-    absent_train_id_path = root_path+r"\absent_train_id.csv"
-    absent_test_id_path = root_path+r"\absent_test_id.csv"
-    present_train_id_path = root_path+r"\present_train_id.csv"
-    present_test_id_path = root_path+r"\present_test_id.csv"
+    absent_train_id_path = root_path + r"\absent_train_id.csv"
+    absent_test_id_path = root_path + r"\absent_test_id.csv"
+    present_train_id_path = root_path + r"\present_train_id.csv"
+    present_test_id_path = root_path + r"\present_test_id.csv"
 
     # 将absent_id和present_id按照8:2随机选取id划分为训练集和测试集
     # absent_train_id = random.sample(
@@ -543,9 +517,9 @@ if __name__ == '__main__':
     # 按照每折的id复制数据到每折对应文件夹
     # 此处执行后的数据，数据只按折分开了，并没有按present和Absnet分开
     for k, v in fold_absent.items():
-        copy_states_data(v, root_path, "\\fold_"+str(k), "\\Absent\\")
+        copy_states_data(v, root_path, "\\fold_" + str(k), "\\Absent\\")
     for k, v in fold_present.items():
-        copy_states_data(v, root_path, "\\fold_"+str(k), "\\Present\\")
+        copy_states_data(v, root_path, "\\fold_" + str(k), "\\Present\\")
     # 若要继续按照present和absent分开，需要在save_as_npy.py中修改代码
 
     # 保存train、test id为CSV文件
@@ -576,8 +550,8 @@ if __name__ == '__main__':
 
     for k in range(5):
         for murmur in ['Absent', 'Present']:
-            src_fold_path = root_path+r"\fold_"+str(k)+"\\"+murmur+"\\"
-            target_dir = root_path+r'\fold_set_'+str(k)
+            src_fold_path = root_path + r"\fold_" + str(k) + "\\" + murmur + "\\"
+            target_dir = root_path + r'\fold_set_' + str(k)
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
             if not os.path.exists(target_dir + "\\absent\\"):
@@ -597,12 +571,11 @@ if __name__ == '__main__':
                         raise ValueError("state error")
 
     for k in range(5):
-        src_fold_root_path = root_path+r"'\fold_set_"+str(k)
+        src_fold_root_path = root_path + r"'\fold_set_" + str(k)
         for murmur in ['absent', 'present']:
-            src_fold_path = src_fold_root_path+"\\"+murmur+"\\"
+            src_fold_path = src_fold_root_path + "\\" + murmur + "\\"
 
     data_set(root_path)
-
 
 # # 复制到trainset和testset
 # # trainset

@@ -1,13 +1,11 @@
-import shutil
 import json
-import os
-import torch
-import torch.nn as nn
-import os
 import shutil
+
 import librosa
 import librosa.display
-import numpy as np
+import torch
+import torch.nn as nn
+
 from util.helper_code import *
 
 
@@ -171,7 +169,7 @@ class RunningAverage():
         self.steps += 1
 
     def __call__(self):
-        return (self.total/float(self.steps))
+        return (self.total / float(self.steps))
 
 
 def save_checkpoint(state, modelname, split, checkpoint):

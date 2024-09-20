@@ -1,17 +1,15 @@
-import os
-import shutil
-import random
-import librosa
-import matplotlib.pyplot as plt
-import librosa.display
-import soundfile
 import csv
-import numpy as np
-import pandas as pd
+import random
+import shutil
+
+import librosa
+import librosa.display
 # from BEATs_def import mkdir
 # import soundfile as sf
 # from BEATs_def import get_wav_data
 import pandas as pd
+import soundfile
+
 from util.helper_code import *
 from util.utils_features import get_features_mod, get_logmel_feature
 
@@ -116,19 +114,18 @@ def index_load(tsvname):
 
 # preprocessed PCGs were segmented into four heart sound states
 def period_div(
-    path,
-    mur,
-    patient_id_list,
-    positoin,
-    id_data,
-    Murmur_locations,
-    Systolic_murmur_timing,
-    Diastolic_murmur_timing,
+        path,
+        mur,
+        patient_id_list,
+        positoin,
+        id_data,
+        Murmur_locations,
+        Systolic_murmur_timing,
+        Diastolic_murmur_timing,
 ):
-
     for patient_id in patient_id_list:
         patient_dir_path = path + mur + patient_id + "\\" + patient_id
-        txtpath = patient_dir_path+".txt"
+        txtpath = patient_dir_path + ".txt"
         current_patient_data = load_patient_data(txtpath)
         hunman_feat = get_features_mod(current_patient_data)
         for pos in positoin:
@@ -172,15 +169,15 @@ def period_div(
 
 
 def state_div(
-    tsvname,
-    wavname,
-    state_path,
-    index,
-    Systolic_murmur,
-    Diastolic_murmur,
-    Systolic_state,
-    Diastolic_state,
-    hunman_feat
+        tsvname,
+        wavname,
+        state_path,
+        index,
+        Systolic_murmur,
+        Diastolic_murmur,
+        Systolic_state,
+        Diastolic_state,
+        hunman_feat
 ):
     """切割出s1+收缩和s2+舒张"""
     index_file = index_load(tsvname)
@@ -196,7 +193,7 @@ def state_div(
         #     break
         if index_file[i][2] == "1" and index_file[i + 2][2] == "3":
             start_index1 = float(index_file[i][0]) * fs
-            end_index1 = float(index_file[i+1][1]) * fs
+            end_index1 = float(index_file[i + 1][1]) * fs
             start_index2 = float(index_file[i + 2][0]) * fs
             end_index2 = float(index_file[i + 3][1]) * fs
             num = num + 1
@@ -236,11 +233,11 @@ def state_div(
 
 
 def state_div2(
-    tsvname,
-    wavname,
-    state_path,
-    id_pos,
-    murmur_type
+        tsvname,
+        wavname,
+        state_path,
+        id_pos,
+        murmur_type
 
 ):
     """按照4s切片"""
@@ -268,9 +265,7 @@ def state_div2(
     for i, segment in enumerate(segments):
         soundfile.write(
             state_path
-            + "{}_{}_{}_{}_{}.wav".format(
-                id_pos, str(spilt_len)+"s", i, murmur_type, "none"
-            ),
+            + "{}_{}_{}_{}_{}.wav".format(id_pos, str(spilt_len) + "s", i, murmur_type, "none"),
             segment,
             fs,
         )
@@ -296,23 +291,24 @@ def fold_devide(data, flod_num=5):
     flod5 = {}
     point = []
     for i in range(flod_num):
-        point.append(i*round(len(data)/flod_num))
+        point.append(i * round(len(data) / flod_num))
     # print(point)
     # 分割序列
     for i in range(len(point)):
-        if i < len(point)-1:
+        if i < len(point) - 1:
             flod5[i] = []
-            flod5[i].extend(data[point[i]:point[i+1]])
+            flod5[i].extend(data[point[i]:point[i + 1]])
         else:
             flod5[i] = []
             flod5[i].extend(data[point[-1]:])
     return flod5
 
+
 # copy data to folder
 
 
 def copy_states_data(patient_id, folder, type, murmur):
-    traget_path = folder+type+murmur
+    traget_path = folder + type + murmur
     if not os.path.exists(traget_path):
         os.makedirs(traget_path)
     for id in patient_id:
@@ -331,7 +327,7 @@ def copy_states_data(patient_id, folder, type, murmur):
 def data_set(root_path):
     """数据增强，包括时间拉伸和反转"""
     # root_path = r"D:\Shilong\murmur\01_dataset\06_new5fold"
-    npy_path_padded = root_path+r"\npyFile_padded\npy_files01_norm"
+    npy_path_padded = root_path + r"\npyFile_padded\npy_files01_norm"
     index_path = root_path + r"\npyFile_padded\index_files01_norm"
     if not os.path.exists(npy_path_padded):
         os.makedirs(npy_path_padded)
@@ -339,7 +335,7 @@ def data_set(root_path):
         os.makedirs(index_path)
     for k in range(5):
         mel_list = []
-        src_fold_root_path = root_path+r"\fold_set_"+str(k)
+        src_fold_root_path = root_path + r"\fold_set_" + str(k)
         # TODO 是否做数据增强
         # data_Auge(src_fold_root_path)
         for folder in os.listdir(src_fold_root_path):
@@ -367,7 +363,7 @@ def data_set(root_path):
                     f"\\{folder}_feat_norm01_fold{k}.npy", feat)
             absent_train_dic = zip(index, names, feat)
             pd.DataFrame(absent_train_dic).to_csv(
-                index_path+f"\\fold{k}_{folder}_disc.csv", index=False, header=False)
+                index_path + f"\\fold{k}_{folder}_disc.csv", index=False, header=False)
     print("data set is done!")
 
 
@@ -381,13 +377,13 @@ def get_wav_data(dir_path, num=0):
     # 设置采样率为4k，时间长度为4
     fs = 4000
     time = 4
-    data_length = fs*time
+    data_length = fs * time
     for root, dir, file in os.walk(dir_path):
         for subfile in file:
             wav_path = os.path.join(root, subfile)
             if os.path.exists(wav_path):
                 # 序号
-                num = num+1
+                num = num + 1
                 file_names.append(subfile)
                 wav_nums.append(num)
                 # 数据读取
@@ -407,7 +403,7 @@ def get_wav_data(dir_path, num=0):
                 elif y_4k_norm.shape[0] > data_length:
                     # y_4k_norm = y_4k_norm[-data_length:]
                     y_4k_norm = y_4k_norm[:data_length]
-                print("num is "+str(num), "y_16k size: "+str(y_4k_norm.size))
+                print("num is " + str(num), "y_16k size: " + str(y_4k_norm.size))
 
                 wav.append(y_4k_norm)
                 file_name = subfile.split("_")
@@ -424,7 +420,7 @@ def get_wav_data(dir_path, num=0):
 def wav_normalize(data):
     """min max归一化"""
     # range = np.max(data) - np.min(data)
-    data = (data-np.mean(data))/np.max(np.abs(data))
+    data = (data - np.mean(data)) / np.max(np.abs(data))
     # data = (data-np.min(data))/range
     return data
     # recording -= recording.mean()

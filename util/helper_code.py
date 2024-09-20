@@ -4,10 +4,10 @@
 # These are helper functions that you can use with your code.
 
 import os
+
 import numpy as np
 import scipy as sp
-import scipy.io
-import scipy.io.wavfile
+
 
 # Check if a variable is a number or represents a number.
 
@@ -19,6 +19,7 @@ def is_number(x):
     except (ValueError, TypeError):
         return False
 
+
 # Check if a variable is an integer or represents an integer.
 
 
@@ -27,6 +28,7 @@ def is_integer(x):
         return float(x).is_integer()
     else:
         return False
+
 
 # Check if a variable is a a finite number or represents a finite number.
 
@@ -37,6 +39,7 @@ def is_finite_number(x):
     else:
         return False
 
+
 # Compare normalized strings.
 
 
@@ -45,6 +48,7 @@ def compare_strings(x, y):
         return str(x).strip().casefold() == str(y).strip().casefold()
     except AttributeError:  # For Python 2.x compatibility
         return str(x).strip().lower() == str(y).strip().lower()
+
 
 # Find patient data files.
 
@@ -66,6 +70,7 @@ def find_patient_files(data_folder):
 
     return filename
 
+
 # Load patient data as a string.
 
 
@@ -74,6 +79,7 @@ def load_patient_data(filename):
         data = f.read()
     return data
 
+
 # Load a WAV file.
 
 
@@ -81,12 +87,13 @@ def load_wav_file(filename):
     frequency, recording = sp.io.wavfile.read(filename)
     return recording, frequency
 
+
 # Load recordings.
 
 
 def load_recordings(data_folder, data, get_frequencies=False):
     num_locations = get_num_locations(data)
-    recording_information = data.split('\n')[1:num_locations+1]
+    recording_information = data.split('\n')[1:num_locations + 1]
 
     recordings = list()
     frequencies = list()
@@ -103,6 +110,7 @@ def load_recordings(data_folder, data, get_frequencies=False):
     else:
         return recordings
 
+
 # Get patient ID from patient data.
 
 
@@ -117,6 +125,7 @@ def get_patient_id(data):
         else:
             break
     return patient_id
+
 
 # Get number of recording locations from patient data.
 
@@ -133,6 +142,7 @@ def get_num_locations(data):
             break
     return num_locations
 
+
 # Get frequency from patient data.
 
 
@@ -147,6 +157,7 @@ def get_frequency(data):
         else:
             break
     return frequency
+
 
 # Get recording locations from patient data.
 
@@ -178,6 +189,7 @@ def get__locations(data):
                 pass
     return loc
 
+
 # Get age from patient data.
 
 
@@ -190,6 +202,7 @@ def get_age(data):
             except:
                 pass
     return age
+
 
 # Get sex from patient data.
 
@@ -204,6 +217,7 @@ def get_sex(data):
                 pass
     return sex
 
+
 # Get height from patient data.
 
 
@@ -217,6 +231,7 @@ def get_height(data):
                 pass
     return height
 
+
 # Get weight from patient data.
 
 
@@ -229,6 +244,7 @@ def get_weight(data):
             except:
                 pass
     return weight
+
 
 # Get pregnancy status from patient data.
 
@@ -280,6 +296,7 @@ def get_diastolic_murmur_timing(data):
                 pass
     return is_pregnant
 
+
 # Get murmur from patient data.
 
 
@@ -295,6 +312,7 @@ def get_murmur(data):
         raise ValueError(
             'No murmur available. Is your code trying to load labels from the hidden data?')
     return murmur
+
 
 # Get outcome from patient data.
 
@@ -312,6 +330,7 @@ def get_outcome(data):
             'No outcome available. Is your code trying to load labels from the hidden data?')
     return outcome
 
+
 # Sanitize binary values from Challenge outputs.
 
 
@@ -322,6 +341,7 @@ def sanitize_binary_value(x):
         return 1
     else:
         return 0
+
 
 # Santize scalar values from Challenge outputs.
 
@@ -334,6 +354,7 @@ def sanitize_scalar_value(x):
     else:
         return 0.0
 
+
 # Save Challenge outputs.
 
 
@@ -344,11 +365,12 @@ def save_challenge_outputs(filename, patient_id, classes, labels, probabilities)
     label_string = ','.join(str(l) for l in labels)
     probabilities_string = ','.join(str(p) for p in probabilities)
     output_string = patient_string + '\n' + class_string + \
-        '\n' + label_string + '\n' + probabilities_string + '\n'
+                    '\n' + label_string + '\n' + probabilities_string + '\n'
 
     # Write the Challenge outputs.
     with open(filename, 'w') as f:
         f.write(output_string)
+
 
 # Load Challenge outputs.
 

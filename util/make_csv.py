@@ -1,6 +1,9 @@
-from helper_code import *
 from typing import Optional
+
 import pandas as pd
+
+from helper_code import *
+
 """
     此文件用于生成csv文件，用于后续的训练和测试
     valid和test没有csv，不便于产生数据集

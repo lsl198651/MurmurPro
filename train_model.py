@@ -1,81 +1,84 @@
 import argparse
-import torch
-import torch.profiler
 import logging
+
 import numpy as np
-from torch.utils.data.sampler import WeightedRandomSampler
+import torch.profiler
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import WeightedRandomSampler
+
 from model.resnet6v2.se_resnet import se_resnet6
 from traintest import train_test
 from util.utils_dataloader import fold5_dataloader
 from util.utils_train import logger_init, DatasetClass
+
 # from util.dataloaders import get_features
 # from model.model_sknet import AudioClassifier
 # from BEATs import BEATs_Pre_Train_itere3
 # from torchvision.models import resnet18
 
+#
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--batch_size", type=int, default=512,
-                        help="args.batch_size for training")
-    parser.add_argument("--learning_rate", type=float,
-                        default=0.05, help="learning_rate for training")
-    parser.add_argument("--num_epochs", type=int,
-                        default=100, help="num_epochs")
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--batch_size", type=int, default=512, help="args.batch_size for training")
+    parser.add_argument("--learning_rate", type=float, default=0.05, help="learning_rate for training")
+    parser.add_argument("--num_epochs", type=int, default=100, help="num_epochs")
     parser.add_argument("--layers", type=int, default=3, help="layers number")
-    parser.add_argument("--loss_type", type=str, default="FocalLoss",
-                        help="loss function", choices=["CE", "FocalLoss"])
-    parser.add_argument("--scheduler_flag", type=str, default="step",
-                        help="the dataset used", choices=["cos", "MultiStepLR", "step"],)
-    parser.add_argument("--freqm_value",  type=int, default=0,
-                        help="frequency mask max length")
-    parser.add_argument("--timem_value", type=int, default=0,
-                        help="time mask max length")
-    parser.add_argument("--mask", type=bool, default=False,
-                        help="number of classes", choices=[True, False])
-    parser.add_argument("--trainset_balence", type=bool, default=False,
-                        help="balance absent and present in testset", choices=[True, False],)
-    parser.add_argument("--Data_Augmentation", type=bool, default=False,
-                        help="Add data augmentation", choices=[True, False],)
-    parser.add_argument("--train_total", type=bool, default=True,
-                        help="use grad_no_requiredn", choices=[True, False],)
-    parser.add_argument("--samplerWeight", type=bool, default=True,
-                        help="use balanced sampler", choices=[True, False],)
+    parser.add_argument("--loss_type", type=str, default="FocalLoss", help="loss function", choices=["CE", "FocalLoss"])
+    parser.add_argument("--scheduler_flag", type=str, default="step", help="the dataset used",
+                        choices=["cos", "MultiStepLR", "step"], )
+    parser.add_argument("--freqm_value", type=int, default=0, help="frequency mask max length")
+    parser.add_argument("--timem_value", type=int, default=0, help="time mask max length")
+    parser.add_argument("--mask", type=bool, default=False, help="number of classes", choices=[True, False])
+    parser.add_argument("--trainset_balence", type=bool, default=False, help="balance absent and present in testset",
+                        choices=[True, False], )
+    parser.add_argument("--Data_Augmentation", type=bool, default=False, help="Add data augmentation",
+                        choices=[True, False], )
+    parser.add_argument("--train_total", type=bool, default=True, help="use grad_no_requiredn", choices=[True, False], )
+    parser.add_argument("--samplerWeight", type=bool, default=True, help="use balanced sampler",
+                        choices=[True, False], )
     # TODO 改模型名字
-    parser.add_argument(
-        "--model", type=str, default="logmel + se_resnet6v2  4k  samplerWeight[1,5] lr=0.05,32,64 channel reductiom=8 high_freq=1000, window_type='hanning'")
-    parser.add_argument("--ap_ratio", type=float, default=1.0,
-                        help="ratio of absent and present")
+    parser.add_argument("--model", type=str,
+                        default="logmel + se_resnet6v2  4k  samplerWeight[1,5] lr=0.05,32,64 channel reductiom=8 high_freq=1000, window_type='hanning'")
+    parser.add_argument("--ap_ratio", type=float, default=1.0, help="ratio of absent and present")
     parser.add_argument("--beta", type=float, default=(0.9, 0.98), help="beta")
     parser.add_argument("--cross_evalue", type=bool, default=False)
-    parser.add_argument("--train_fold", type=list,
-                        default=['0', '1', '2', '3'])
+    parser.add_argument("--train_fold", type=list, default=['0', '1', '2', '3'])
     parser.add_argument("--test_fold", type=list, default=['4'])
     parser.add_argument("--setType", type=str, default=r"\13_baseset_4s_4k")
     parser.add_argument("--model_folder", type=str,
                         default=r"D:\Shilong\murmur\00_Code\LM\beats1\SE_ResNet6\MyModels")
     args = parser.parse_args()
+
     # 检测分折重复
     for val in args.test_fold:
         if val in args.train_fold:
             raise ValueError("train_fold and test_fold have same fold")
 
-    train_features, train_label, train_index, test_features,  test_label, test_index = fold5_dataloader(
+    train_features, train_label, train_index, test_features, test_label, test_index = fold5_dataloader(
         args.train_fold, args.test_fold, args.Data_Augmentation, args.setType)
     # ========================/ setup loader /========================== #
     if args.samplerWeight == True:
         weights = [5 if label == 1 else 1 for label in train_label]
-        Data_sampler = WeightedRandomSampler(
-            weights, num_samples=len(weights), replacement=True)
+        Data_sampler = WeightedRandomSampler(weights, num_samples=len(weights), replacement=True)
         train_loader = DataLoader(DatasetClass(wavlabel=train_label, wavdata=train_features, wavidx=train_index),
-                                  sampler=Data_sampler, batch_size=args.batch_size, drop_last=True,  pin_memory=True, num_workers=2)
+                                  sampler=Data_sampler,
+                                  batch_size=args.batch_size,
+                                  drop_last=True,
+                                  pin_memory=True,
+                                  num_workers=2)
     else:
         train_loader = DataLoader(DatasetClass(wavlabel=train_label, wavdata=train_features, wavidx=train_index),
-                                  batch_size=args.batch_size, drop_last=True, shuffle=True, pin_memory=True, num_workers=2)
+                                  batch_size=args.batch_size,
+                                  drop_last=True,
+                                  shuffle=True,
+                                  pin_memory=True,
+                                  num_workers=2)
 
     val_loader = DataLoader(DatasetClass(wavlabel=test_label, wavdata=test_features, wavidx=test_index),
-                            batch_size=1, shuffle=False, pin_memory=True, num_workers=2)
+                            batch_size=1,
+                            shuffle=False,
+                            pin_memory=True,
+                            num_workers=2)
 
     # ========================/ dataset size /========================== #
     train_present_size = np.sum(train_label == 1)
@@ -89,14 +92,16 @@ if __name__ == '__main__':
     MyModel = se_resnet6()
     # MyModel = MyResnet18()
     # ========================/ setup optimizer /========================== #
-    if not args.train_total:       # tmd 谁给我这么写的！！！！！！
+    if not args.train_total:
         for param in MyModel.BEATs.parameters():
             param.requires_grad = False
-        optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, MyModel.parameters(
-        )), lr=args.learning_rate, betas=args.beta,)
+        optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, MyModel.parameters()),
+                                      lr=args.learning_rate,
+                                      betas=args.beta, )
     else:
-        optimizer = torch.optim.AdamW(
-            MyModel.parameters(), lr=args.learning_rate, betas=args.beta)
+        optimizer = torch.optim.AdamW(MyModel.parameters(),
+                                      lr=args.learning_rate,
+                                      betas=args.beta)
     # ========================/ setup scaler /========================== #
     # import torch
     # print(torch.__version__)
@@ -121,10 +126,9 @@ if __name__ == '__main__':
     logging.info("# Optimizer = " + str(optimizer))
     logging.info(
         "# ")
-    train_test(
-        model=MyModel,
-        train_loader=train_loader,
-        test_loader=val_loader,
-        optimizer=optimizer,
-        args=args,
-    )
+    train_test(model=MyModel,
+               train_loader=train_loader,
+               test_loader=val_loader,
+               optimizer=optimizer,
+               args=args,
+               )

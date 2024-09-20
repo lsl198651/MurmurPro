@@ -1,20 +1,22 @@
 import datetime
+import logging
 import os
 import sys
-import numpy as np
-from torch.autograd import Variable
-import torch.nn as nn
-import torch
-from sklearn.metrics import confusion_matrix
-from util.utils_dataset import csv_reader_row, csv_reader_cl
-import logging
-from torch.utils.data import Dataset
 from datetime import datetime
+
+import numpy as np
+import torch
+import torch.nn as nn
+from sklearn.metrics import confusion_matrix
+from torch.autograd import Variable
+from torch.utils.data import Dataset
+
+from util.utils_dataset import csv_reader_row, csv_reader_cl
 
 
 def logger_init(
-    log_level=logging.DEBUG,
-    log_dir=r"./log",
+        log_level=logging.DEBUG,
+        log_dir=r"./log",
 ):
     """初始化logging"""
     # 指定路径
@@ -82,7 +84,7 @@ class FocalLoss(nn.Module):
         self.gamma = gamma
         self.alpha = alpha
         if isinstance(alpha, (float, int)):
-            self.alpha = torch.Tensor([alpha, 1-alpha])
+            self.alpha = torch.Tensor([alpha, 1 - alpha])
         if isinstance(alpha, list):
             self.alpha = torch.Tensor(alpha)
         self.size_average = size_average
@@ -91,8 +93,8 @@ class FocalLoss(nn.Module):
         if input.dim() > 2:
             # N,C,H,W => N,C,H*W
             input = input.view(input.size(0), input.size(1), -1)
-            input = input.transpose(1, 2)    # N,C,H*W => N,H*W,C
-            input = input.contiguous().view(-1, input.size(2))   # N,H*W,C => N*H*W,C
+            input = input.transpose(1, 2)  # N,C,H*W => N,H*W,C
+            input = input.contiguous().view(-1, input.size(2))  # N,H*W,C => N*H*W,C
         target = target.view(-1, 1)
 
         logpt = torch.log(torch.softmax(input, dim=1))  #
@@ -106,7 +108,7 @@ class FocalLoss(nn.Module):
             at = self.alpha.gather(0, target.data.view(-1))
             logpt = logpt * Variable(at)
 
-        loss = -1 * (1-pt)**self.gamma * logpt
+        loss = -1 * (1 - pt) ** self.gamma * logpt
         if self.size_average:
             return loss.mean()
         else:
@@ -122,7 +124,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
         _type_: _description_
     """
     npy_path_padded = r"D:\Shilong\murmur\01_dataset" + \
-        set_type+r"\npyFile_padded\npy_files01"
+                      set_type + r"\npyFile_padded\npy_files01"
     # if len(test_fold) == 1:
     for k in test_fold:
         absent_test_index = np.load(
@@ -172,7 +174,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
     id_idx_dic = {}
     # 遍历test_dic，生成id_pos:idx的字典
     for file_name, data_index in test_dic.items():
-        id_pos = file_name.split('_')[0]+'_'+file_name.split('_')[1]
+        id_pos = file_name.split('_')[0] + '_' + file_name.split('_')[1]
         # 如果id_pos不在字典中，就创建一个新的键值对
         if not id_pos in id_idx_dic.keys():
             id_idx_dic[id_pos] = [data_index]
@@ -219,7 +221,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
     # 这里需要检查一下segment_target_list和segment_output_list的长度是否一致
     # 计算准确率的代码是这样的吗？？？
     segment_acc = (np.array(segment_output) == np.array(
-        segment_target)).sum()/len(segment_target)
+        segment_target)).sum() / len(segment_target)
     # 计算混淆矩阵
     segment_cm = confusion_matrix(
         segment_target, segment_output)
@@ -234,7 +236,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
         for location in np.unique(locations):
             # 这里除去了phc，因为phc不在result_dic中
             if location in ['AV', 'PV', 'TV', 'MV']:
-                id_location = patient_id+'_'+location
+                id_location = patient_id + '_' + location
             if id_location in result_dic.keys():
                 if not patient_id in patient_result_dic.keys():
                     patient_result_dic[patient_id] = result_dic[id_location]
@@ -243,14 +245,14 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
             else:
                 # patient_result_dic[patient_id] += 0
                 # 正常情况不会报这个错，因为result_dic中的id_loc都是在segment_target_list中的
-                print('[WANGING 3]: ' + id_location+' not in result_dic')
+                print('[WANGING 3]: ' + id_location + ' not in result_dic')
     # 遍历patient_result_dic，计算每个患者的最终分类结果
     patient_output_dic = {}
     patient_output = []
     patient_target = []
     for patient_id, result in patient_result_dic.items():
         # 做output
-        if result == 0:    # 全为0 absent
+        if result == 0:  # 全为0 absent
             patient_output_dic[patient_id] = 0
             patient_output.append(0)
         elif result > 0:  # 不全为0 present
@@ -264,7 +266,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
         elif patient_id in present_test_id_all:
             patient_target.append(1)
         else:
-            print('[WANGING 5]: '+patient_id+' not in test_id')
+            print('[WANGING 5]: ' + patient_id + ' not in test_id')
     # 统计patient的错误id
     patient_id_test = list(patient_output_dic.keys())
     # 保存错误的id
@@ -294,9 +296,9 @@ def get_segment_target_list(test_fold, set_type):
     # if len(test_fold) == 1:
     for k in test_fold:
         absent_test_id_path = fr"D:\Shilong\murmur\01_dataset" + \
-            set_type+fr"\absent_fold_{k}.csv"
+                              set_type + fr"\absent_fold_{k}.csv"
         present_test_id_path = fr"D:\Shilong\murmur\01_dataset" + \
-            set_type+fr"\present_fold_{k}.csv"
+                               set_type + fr"\present_fold_{k}.csv"
         absent_test_id = csv_reader_cl(absent_test_id_path, 0)
         present_test_id = csv_reader_cl(present_test_id_path, 0)
     # else:
@@ -330,7 +332,7 @@ def get_segment_target_list(test_fold, set_type):
     Murmur_locations = csv_reader_cl(csv_path, tag_list[2])
     Recording_locations = csv_reader_cl(csv_path, tag_list[3])
     # 测试集中所有的id
-    test_id = absent_test_id+present_test_id
+    test_id = absent_test_id + present_test_id
     # 创建一个空列表segment_present，用来存储有杂音的音频的id和位置
     segment_present = []
     # print(absent_test_id)
@@ -343,7 +345,7 @@ def get_segment_target_list(test_fold, set_type):
             for loc in locations:
                 if loc in ['AV', 'PV', 'TV', 'MV']:
                     # 以id_loc的形式存储present的id和位置
-                    segment_present.append(id+'_'+loc)
+                    segment_present.append(id + '_' + loc)
                 else:
                     print(f'[WANGING 1]: {id}_{loc} not in locations')
         else:
