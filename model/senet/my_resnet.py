@@ -1,14 +1,12 @@
 # from functools import partial
 from typing import Callable, List, Optional, Type, Union
-from numpy import fmin
 
 import torch
 import torch.nn as nn
-from torch import Tensor
 import torchaudio.compliance.kaldi as ta_kaldi
-import torchaudio.transforms as T
-import torchaudio.functional as F
-import librosa
+from torch import Tensor
+
+
 # from ..transforms._presets import ImageClassification
 # from ..utils import _log_api_usage_once
 # from ._api import register_model, Weights, WeightsEnum
@@ -35,29 +33,80 @@ def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
     return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
 
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction):
+        super(SELayer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
+
+class SEBasicBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
+                 base_width=64, dilation=1, norm_layer=None, *, reduction=8):
+        super(SEBasicBlock, self).__init__()
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = nn.BatchNorm2d(inplanes)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = conv3x3(planes, planes, 1)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.se = SELayer(planes, reduction)
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        residual = x
+        out = self.bn1(x)
+        out = self.relu(out)
+        out = self.conv1(out)
+
+        out = self.bn2(out)
+        out = self.relu(out)
+        out = self.conv2(out)
+        out = self.se(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out += residual
+        # out = self.relu(out)
+
+        return out
+
+
 class BasicBlock(nn.Module):
     expansion: int = 1
 
     def __init__(
-        self,
-        inplanes: int,
-        planes: int,
-        stride: int = 1,
-        downsample: Optional[nn.Module] = None,
-        groups: int = 1,
-        base_width: int = 64,
-        dilation: int = 1,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
+            self,
+            inplanes: int,
+            planes: int,
+            stride: int = 1,
+            downsample: Optional[nn.Module] = None,
+            groups: int = 1,
+            base_width: int = 64,
+            dilation: int = 1,
+            norm_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         if groups != 1 or base_width != 64:
-            raise ValueError(
-                "BasicBlock only supports groups=1 and base_width=64")
+            raise ValueError("BasicBlock only supports groups=1 and base_width=64")
         if dilation > 1:
-            raise NotImplementedError(
-                "Dilation > 1 not supported in BasicBlock")
+            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = norm_layer(planes)
@@ -96,15 +145,15 @@ class Bottleneck(nn.Module):
     expansion: int = 4
 
     def __init__(
-        self,
-        inplanes: int,
-        planes: int,
-        stride: int = 1,
-        downsample: Optional[nn.Module] = None,
-        groups: int = 1,
-        base_width: int = 64,
-        dilation: int = 1,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
+            self,
+            inplanes: int,
+            planes: int,
+            stride: int = 1,
+            downsample: Optional[nn.Module] = None,
+            groups: int = 1,
+            base_width: int = 64,
+            dilation: int = 1,
+            norm_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -146,15 +195,15 @@ class Bottleneck(nn.Module):
 
 class My_ResNet(nn.Module):
     def __init__(
-        self,
-        block: Type[Union[BasicBlock, Bottleneck]],
-        layers: List[int],
-        num_classes: int = 2,
-        zero_init_residual: bool = False,
-        groups: int = 1,
-        width_per_group: int = 64,
-        replace_stride_with_dilation: Optional[List[bool]] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
+            self,
+            block: SEBasicBlock,
+            layers: [1,1],
+            num_classes: int = 2,
+            zero_init_residual: bool = False,
+            groups: int = 1,
+            width_per_group: int = 64,
+            replace_stride_with_dilation: Optional[List[bool]] = None,
+            norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
         super().__init__()
         # _log_api_usage_once(self)
@@ -170,30 +219,25 @@ class My_ResNet(nn.Module):
             replace_stride_with_dilation = [False, False, False]
         if len(replace_stride_with_dilation) != 3:
             raise ValueError(
-                "replace_stride_with_dilation should be None "
-                f"or a 3-element tuple, got {replace_stride_with_dilation}"
-            )
+                "replace_stride_with_dilation should be None " f"or a 3-element tuple, got {replace_stride_with_dilation}")
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(
-            1, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(1, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.mp1 = nn.MaxPool2d(2)
-        self.dp1 = nn.Dropout(p=0.15)
         self.layer1 = self._make_layer(block, 32, layers[0])
+        self.layer2 = self._make_layer(block, 64, layers[1], stride=1, dilate=replace_stride_with_dilation[0])
+        self.dp1 = nn.Dropout(p=0.15)
         self.dp2 = nn.Dropout(p=0.1)
-        self.layer2 = self._make_layer(
-            block, 64, layers[1], stride=1, dilate=replace_stride_with_dilation[0])
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        self.mp1 = nn.MaxPool2d(2)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         # self.wide = nn.Linear(6, 20)
         self.fc = nn.Linear(64, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(
-                    m.weight, mode="fan_out", nonlinearity="relu")
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
                 # nn.init.kaiming_normal_(m.weight, a=0.1)
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
@@ -210,12 +254,12 @@ class My_ResNet(nn.Module):
         #             nn.init.constant_(m.bn2.weight, 0)  # type: ignore[arg-type]
 
     def _make_layer(
-        self,
-        block: Type[Union[BasicBlock, Bottleneck]],
-        planes: int,
-        blocks: int,
-        stride: int = 1,
-        dilate: bool = False,
+            self,
+            block: Type[Union[BasicBlock, Bottleneck]],
+            planes: int,
+            blocks: int,
+            stride: int = 1,
+            dilate: bool = False
     ) -> nn.Sequential:
         norm_layer = self._norm_layer
         downsample = None
@@ -224,35 +268,24 @@ class My_ResNet(nn.Module):
             self.dilation *= stride
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),
-                norm_layer(planes * block.expansion),
-            )
+            downsample = nn.Sequential(conv1x1(self.inplanes, planes * block.expansion, stride),
+                                       norm_layer(planes * block.expansion))
 
         layers = []
         layers.append(
-            block(
-                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
-            )
-        )
+            block(self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation,
+                  norm_layer))
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
             layers.append(
-                block(
-                    self.inplanes,
-                    planes,
-                    groups=self.groups,
-                    base_width=self.base_width,
-                    dilation=self.dilation,
-                    norm_layer=norm_layer,
-                )
-            )
+                block(self.inplanes, planes, groups=self.groups, base_width=self.base_width, dilation=self.dilation,
+                      norm_layer=norm_layer))
 
         return nn.Sequential(*layers)
 
     def preprocess(
             self,
-            source: torch.Tensor,
+            source: torch.Tensor
     ) -> torch.Tensor:
         fbanks = []
         # mel = T.MelSpectrogram(sample_rate=4000, n_fft=512,
@@ -262,8 +295,7 @@ class My_ResNet(nn.Module):
             # mel = mel.to('cuda')
             # melspec = mel(waveform)
             # logfbank = T.AmplitudeToDB()(melspec)
-            fbank = ta_kaldi.fbank(
-                waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
+            fbank = ta_kaldi.fbank(waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
             fbank_mean = fbank.mean()
             fbank_std = fbank.std()
             fbank = (fbank - fbank_mean) / fbank_std

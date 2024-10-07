@@ -1,7 +1,6 @@
 import logging
 import os
 from datetime import datetime
-from math import trunc
 
 import pandas as pd
 import torch
@@ -60,12 +59,15 @@ def train_test(model,
     elif args.scheduler_flag == "MultiStepLR":
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, [40, 80], gamma=0.1)
     # ========================/ 损失函数 /========================== #
-    if args.loss_type == "CE":
+
+    if args.loss_type == "FocalLoss":
+        loss_fn = FocalLoss()
+    elif args.loss_type == "CE_weighted":
         normedWeights = [1, 5]
         normedWeights = torch.FloatTensor(normedWeights).to(device)
-        loss_fn = nn.CrossEntropyLoss()  # 内部会自动加上Softmax层,weight=normedWeights
-    elif args.loss_type == "FocalLoss":
-        loss_fn = FocalLoss()
+        loss_fn = nn.CrossEntropyLoss(weight=normedWeights)  # 内部会自动加上Softmax层,weight=normedWeights
+    else:
+        loss_fn = nn.CrossEntropyLoss()
     # ========================/ 训练网络 /========================== #
     for epochs in range(args.num_epochs):
         # train model
@@ -152,11 +154,11 @@ def train_test(model,
         if test_patient_acc > best_acc and args.saveModel is True:
             best_acc = test_patient_acc
             save_checkpoint({"epoch": epochs + 1,
-                                   "model": model.state_dict(),
-                                   "optimizer": optimizer.state_dict()},
-                                  "se_resnet6v2",
-                                  args.test_fold[0],
-                                  "{}".format(args.model_folder))
+                             "model": model.state_dict(),
+                             "optimizer": optimizer.state_dict()},
+                            "se_resnet6v2",
+                            args.test_fold[0],
+                            "{}".format(args.model_folder))
         # ========================/ 保存error_index.csv  /========================== #
         pd.DataFrame(patient_error_id).to_csv(patient_error_index_path + "/epoch" + str(epochs + 1) + ".csv",
                                               index=False,
@@ -200,7 +202,7 @@ def train_test(model,
         logging.info(f"patient_auroc:{test_patient_auroc:.3f}")
         logging.info(f"patient_auprc:{test_patient_auprc:.3f}")
         logging.info(f"best_acc:{best_acc:.2%}")
-       # ========================/ 混淆矩阵 /========================== #
+        # ========================/ 混淆矩阵 /========================== #
         """draw_confusion_matrix(
             test_cm.numpy(),
             ["Absent", "Present"],

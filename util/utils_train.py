@@ -5,172 +5,55 @@ import sys
 from datetime import datetime
 
 import numpy as np
-import torch
-import torch.nn as nn
 from sklearn.metrics import confusion_matrix
-from torch.autograd import Variable
-from torch.utils.data import Dataset
 
 from util.utils_dataset import csv_reader_row, csv_reader_cl
+
+"""
+   初始化logging
+"""
 
 
 def logger_init(
         log_level=logging.DEBUG,
-        log_dir=r"./log",
-):
-    """初始化logging"""
+        log_dir=r"./log"):
     # 指定路径
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     # 指定日志格式
     date = datetime.now()
-    log_path = os.path.join(
-        log_dir, str(datetime.now().strftime("%Y-%m%d %H%M")) + ".log"
-    )
+    log_path = os.path.join(log_dir, str(datetime.now().strftime("%Y-%m%d %H%M")) + ".log")
     formatter = "[%(asctime)s] %(message)s"
     logging.basicConfig(
         level=log_level,
         format=formatter,
         datefmt="%m%d %H%M",
-        handlers=[logging.FileHandler(
-            log_path), logging.StreamHandler(sys.stdout)],
-    )
+        handlers=[logging.FileHandler(log_path), logging.StreamHandler(sys.stdout)])
     logging.disable(logging.DEBUG)
 
 
-class DatasetClass(Dataset):
-    """继承Dataset类，重写__getitem__和__len__方法
-    添加get_idx方法，返回id
-    input: wavlabel, wavdata, wavidx
-    """
-
-    # Initialize your data, download, etc.
-    def __init__(self, wavlabel, wavdata, wavidx):
-        # 直接传递data和label
-        # self.len = wavlen
-        # embeds = []
-        # for embed in wavebd:
-        #     embed = int(embed.split('.')[0])
-        #     embeds.append(embed)
-        # self.wavebd = embeds
-        self.data = torch.from_numpy(wavdata)
-        self.label = torch.from_numpy(wavlabel)
-        self.id = torch.from_numpy(wavidx)
-
-    def __getitem__(self, index):
-        # 根据索引返回数据和对应的标签
-        dataitem = self.data[index]
-        labelitem = self.label[index]
-        iditem = self.id[index]
-        # embeding = self.wavebd[index]
-        # embeding = 1  # fake
-        # wide_feat = hand_fea((dataitem, 4000))
-        return dataitem.float(), labelitem, iditem  # , wide_feat, embeding
-
-    def __len__(self):
-        # 返回文件数据的数目
-        return len(self.data)
-
-    # def get_idx(self, index):
-    #     iditem = self.id[index]
-    #     return iditem
-
-
-class FocalLoss(nn.Module):
-    """Focal Loss"""
-
-    def __init__(self, gamma=2, alpha=0.25, size_average=True):
-        super(FocalLoss, self).__init__()
-        self.gamma = gamma
-        self.alpha = alpha
-        if isinstance(alpha, (float, int)):
-            self.alpha = torch.Tensor([alpha, 1 - alpha])
-        if isinstance(alpha, list):
-            self.alpha = torch.Tensor(alpha)
-        self.size_average = size_average
-
-    def forward(self, input, target):
-        if input.dim() > 2:
-            # N,C,H,W => N,C,H*W
-            input = input.view(input.size(0), input.size(1), -1)
-            input = input.transpose(1, 2)  # N,C,H*W => N,H*W,C
-            input = input.contiguous().view(-1, input.size(2))  # N,H*W,C => N*H*W,C
-        target = target.view(-1, 1)
-
-        logpt = torch.log(torch.softmax(input, dim=1))  #
-        logpt = logpt.gather(1, target)
-        logpt = logpt.view(-1)
-        pt = Variable(logpt.data.exp())
-
-        if self.alpha is not None:
-            if self.alpha.type() != input.data.type():
-                self.alpha = self.alpha.type_as(input.data)
-            at = self.alpha.gather(0, target.data.view(-1))
-            logpt = logpt * Variable(at)
-
-        loss = -1 * (1 - pt) ** self.gamma * logpt
-        if self.size_average:
-            return loss.mean()
-        else:
-            return loss.sum()
-
-
 def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
-    """本fn计算了针对每个location和patient的acc和cm
+    """
+    本fn计算了针对每个location和patient的acc和cm
     Args:
         result_list_1 (list, optional): 此列表用来存储分类结果为1对应的id.从test结果中生成传入.
         segment_present (list, optional): _description_. 这是有杂音（=1）的音频target列表，在列表中对应为1，不在则对应为0.
     Returns:
         _type_: _description_
     """
-    npy_path_padded = r"D:\Shilong\murmur\01_dataset" + \
-                      set_type + r"\npyFile_padded\npy_files01"
+    npy_path_padded = r"D:\Shilong\murmur\01_dataset" + set_type + r"\npyFile_padded\npy_files01"
     # if len(test_fold) == 1:
     for k in test_fold:
-        absent_test_index = np.load(
-            npy_path_padded + f"\\absent_index_norm01_fold{k}.npy", allow_pickle=True)
-        present_test_index = np.load(
-            npy_path_padded + f"\\present_index_norm01_fold{k}.npy", allow_pickle=True)
-        absent_test_names = np.load(
-            npy_path_padded + f"\\absent_name_norm01_fold{k}.npy", allow_pickle=True)
-        present_test_names = np.load(
-            npy_path_padded + f"\\present_name_norm01_fold{k}.npy", allow_pickle=True)
-    # else:
-    #     for i in range(len(test_fold)):
-    #         k = test_fold[i]
-    #         absent_test_index = np.load(
-    #             npy_path_padded + f"\\absent_index_norm01_fold{k}.npy", allow_pickle=True)
-    #         present_test_index = np.load(
-    #             npy_path_padded + f"\\present_index_norm01_fold{k}.npy", allow_pickle=True)
-    #         absent_test_names = np.load(
-    #             npy_path_padded + f"\\absent_name_norm01_fold{k}.npy", allow_pickle=True)
-    #         present_test_names = np.load(
-    #             npy_path_padded + f"\\present_name_norm01_fold{k}.npy", allow_pickle=True)
-    #         if i == 0:
-    #             absent_test_index_all = absent_test_index
-    #             present_test_index_all = present_test_index
-    #             absent_test_names_all = absent_test_names
-    #             present_test_names_all = present_test_names
-    #         else:
-    #             absent_test_index_all = np.concatenate(
-    #                 (absent_test_index_all, absent_test_index), axis=0)
-    #             present_test_index_all = np.concatenate(
-    #                 (present_test_index_all, present_test_index), axis=0)
-    #             absent_test_names_all = np.concatenate(
-    #                 (absent_test_names_all, absent_test_names), axis=0)
-    #             present_test_names_all = np.concatenate(
-    #                 (present_test_names_all, present_test_names), axis=0)
-
-    """可以测一下这个字典names,index组合对不对"""
+        absent_test_index = np.load(npy_path_padded + f"\\absent_index_norm01_fold{k}.npy", allow_pickle=True)
+        present_test_index = np.load(npy_path_padded + f"\\present_index_norm01_fold{k}.npy", allow_pickle=True)
+        absent_test_names = np.load(npy_path_padded + f"\\absent_name_norm01_fold{k}.npy", allow_pickle=True)
+        present_test_names = np.load(npy_path_padded + f"\\present_name_norm01_fold{k}.npy", allow_pickle=True)
+   # todo 可以测一下这个字典names,index组合对不对"""
     absent_test_dic = dict(zip(absent_test_names, absent_test_index))
-    present_test_dic = dict(
-        zip(present_test_names, present_test_index))
+    present_test_dic = dict(zip(present_test_names, present_test_index))
     # 所有测试数据的字典
     test_dic = {**absent_test_dic, **present_test_dic}
     # 创建id_pos:idx的字典
-    # ------------------------------------------------------------ #
-    # -------------------/ segment classifier /------------------- #
-    # ------------------------------------------------------------ #
     id_idx_dic = {}
     # 遍历test_dic，生成id_pos:idx的字典
     for file_name, data_index in test_dic.items():
@@ -199,8 +82,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
         result_dic[id_pos] = np.mean(value_list)
     # result_dic格式：12345_AV: 0.5, 12345_MV: 0.3
     # 获取segment_target_list,这是csv里面读取的有杂音的音频的id和位置
-    segment_present, patient_dic, absent_test_id_all, present_test_id_all = get_segment_target_list(
-        test_fold, set_type)
+    segment_present, patient_dic, absent_test_id_all, present_test_id_all = get_segment_target_list(test_fold, set_type)
     # 创建两个列表，分别保存outcome和target列表
     segment_output = []
     segment_target = []
@@ -220,11 +102,9 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
             segment_target.append(0)
     # 这里需要检查一下segment_target_list和segment_output_list的长度是否一致
     # 计算准确率的代码是这样的吗？？？
-    segment_acc = (np.array(segment_output) == np.array(
-        segment_target)).sum() / len(segment_target)
+    segment_acc = (np.array(segment_output) == np.array(segment_target)).sum() / len(segment_target)
     # 计算混淆矩阵
-    segment_cm = confusion_matrix(
-        segment_target, segment_output)
+    segment_cm = confusion_matrix(segment_target, segment_output)
     # -------------------------------------------------------- #
     # -----------------/ patient classifier /----------------- #
     # -------------------------------------------------------- #
@@ -295,10 +175,8 @@ def get_segment_target_list(test_fold, set_type):
     """
     # if len(test_fold) == 1:
     for k in test_fold:
-        absent_test_id_path = fr"D:\Shilong\murmur\01_dataset" + \
-                              set_type + fr"\absent_fold_{k}.csv"
-        present_test_id_path = fr"D:\Shilong\murmur\01_dataset" + \
-                               set_type + fr"\present_fold_{k}.csv"
+        absent_test_id_path = fr"D:\Shilong\murmur\01_dataset" + set_type + fr"\absent_fold_{k}.csv"
+        present_test_id_path = fr"D:\Shilong\murmur\01_dataset" + set_type + fr"\present_fold_{k}.csv"
         absent_test_id = csv_reader_cl(absent_test_id_path, 0)
         present_test_id = csv_reader_cl(present_test_id_path, 0)
     # else:
