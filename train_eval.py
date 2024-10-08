@@ -17,7 +17,8 @@ from transformers import optimization
 
 # from util.BEATs_def import Log_GF
 # , get_segment_target_list, FocalLoss_VGG
-from util.utils_train import FocalLoss, segment_classifier
+from util.utils_train import  segment_classifier
+from util.class_def import FocalLoss
 
 
 def train_test(model,
@@ -151,14 +152,14 @@ def train_test(model,
         test_PPV = binary_precision(test_patient_input, test_patient_target)
         test_TPR = binary_recall(test_patient_input, test_patient_target)
         "保存最好的模型"
-        if test_patient_acc > best_acc and args.saveModel is True:
-            best_acc = test_patient_acc
-            save_checkpoint({"epoch": epochs + 1,
-                             "model": model.state_dict(),
-                             "optimizer": optimizer.state_dict()},
-                            "se_resnet6v2",
-                            args.test_fold[0],
-                            "{}".format(args.model_folder))
+        # if test_patient_acc > best_acc and args.saveModel is True:
+        #     best_acc = test_patient_acc
+        #     save_checkpoint({"epoch": epochs + 1,
+        #                      "model": model.state_dict(),
+        #                      "optimizer": optimizer.state_dict()},
+        #                     "se_resnet6v2",
+        #                     args.test_fold[0],
+        #                     "{}".format(args.model_folder))
         # ========================/ 保存error_index.csv  /========================== #
         pd.DataFrame(patient_error_id).to_csv(patient_error_index_path + "/epoch" + str(epochs + 1) + ".csv",
                                               index=False,

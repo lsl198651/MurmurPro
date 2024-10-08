@@ -1,4 +1,3 @@
-# from functools import partial
 from typing import Callable, List, Optional, Type, Union
 
 import torch
@@ -7,11 +6,7 @@ import torchaudio.compliance.kaldi as ta_kaldi
 from torch import Tensor
 
 
-# from ..transforms._presets import ImageClassification
-# from ..utils import _log_api_usage_once
-# from ._api import register_model, Weights, WeightsEnum
-# from ._meta import _IMAGENET_CATEGORIES
-# from ._utils import _ovewrite_named_param, handle_legacy_interface
+
 
 
 def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
@@ -196,8 +191,8 @@ class Bottleneck(nn.Module):
 class My_ResNet(nn.Module):
     def __init__(
             self,
-            block: SEBasicBlock,
-            layers: [1,1],
+            block:Type[Union[BasicBlock, Bottleneck]] = SEBasicBlock,
+            layers=None,
             num_classes: int = 2,
             zero_init_residual: bool = False,
             groups: int = 1,
@@ -207,6 +202,8 @@ class My_ResNet(nn.Module):
     ) -> None:
         super().__init__()
         # _log_api_usage_once(self)
+        if layers is None:
+            layers = [1, 1]
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
