@@ -1,10 +1,8 @@
-from turtle import st
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import init
 import torchaudio.compliance.kaldi as ta_kaldi
-import torchaudio.transforms as TT
+from torch.nn import init
+
 
 # ----------------------------
 # Audio Classification Model
@@ -28,7 +26,7 @@ class AudioClassifier(nn.Module):
         self.dp1 = nn.Dropout(p=0.15)
         init.kaiming_normal_(self.conv1.weight, a=0.1)
         self.conv1.bias.data.zero_()
-        conv_layers += [self.conv1, self.bn1, self.relu1,  self.mp1]
+        conv_layers += [self.conv1, self.bn1, self.relu1, self.mp1]
 
         # Second Convolution Block
         self.conv2 = nn.Conv2d(32, 32, kernel_size=(
@@ -93,6 +91,7 @@ class AudioClassifier(nn.Module):
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
+
     # ----------------------------
     # Forward pass computations
     # ----------------------------
@@ -116,6 +115,7 @@ class AudioClassifier(nn.Module):
         # x_all = torch.softmax(x_all, dim=1)
         # Final output
         return x_all
+
 
 # ----------------------------
 # Audio Classification Model
@@ -179,6 +179,7 @@ class CRNN(nn.Module):
         # Wrap the Convolutional Blocks
         self.conv = nn.Sequential(*conv_layers)
         self.dp = nn.Dropout(p=0.3)
+
     # ----------------------------
     # Forward pass computations
     # ----------------------------

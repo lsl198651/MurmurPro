@@ -6,17 +6,17 @@ import torch.nn as nn
 
 class BasicConv(nn.Module):
     def __init__(
-        self,
-        in_planes,
-        out_planes,
-        kernel_size,
-        stride=1,
-        padding=0,
-        dilation=1,
-        groups=1,
-        relu=True,
-        bn=True,
-        bias=False,
+            self,
+            in_planes,
+            out_planes,
+            kernel_size,
+            stride=1,
+            padding=0,
+            dilation=1,
+            groups=1,
+            relu=True,
+            bn=True,
+            bias=False,
     ):
         super(BasicConv, self).__init__()
         self.out_channels = out_planes
@@ -71,11 +71,11 @@ class SpatialGate(nn.Module):
 
 class TripletAttention(nn.Module):
     def __init__(
-        self,
-        gate_channels,
-        reduction_ratio=16,
-        pool_types=["avg", "max"],
-        no_spatial=False,
+            self,
+            gate_channels,
+            reduction_ratio=16,
+            pool_types=["avg", "max"],
+            no_spatial=False,
     ):
         super(TripletAttention, self).__init__()
         self.ChannelGateH = SpatialGate()

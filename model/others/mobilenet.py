@@ -1,9 +1,6 @@
-from torch import nn
-
 from .triplet_attention import *
 
 __all__ = ["TripletAttention_MobileNetV2", "triplet_attention_mobilenet_v2"]
-
 
 model_urls = {
     "mobilenet_v2": "https://download.pytorch.org/models/mobilenet_v2-b0353104.pth",

@@ -14,14 +14,18 @@
 ### 文件操作
 
 1. 将文件按照 Patient ID 创建文件夹并把听诊区 wav 文件和 tsv 文件存入文件夹
-2. 在每个 Patient ID 文件下创建听诊区文件，按照 tsv 文件的分割点对 wav 文件进行分割为收缩期心跳和舒张期心跳存入听诊区文件夹(**file\*name: patient_ID_Poisition\_收缩/舒张\_num_Present\\Absent_timming.wav**)
-3. load “Patient ID”，按照 8:2 将 patient ID 划分为 train-set/test-set 并存为 CSV >>absnet_train/test_id.csv, present_train/test_id.csv
+2. 在每个 Patient ID 文件下创建听诊区文件，按照 tsv 文件的分割点对 wav
+   文件进行分割为收缩期心跳和舒张期心跳存入听诊区文件夹(**file\*name:
+   patient_ID_Poisition\_收缩/舒张\_num_Present\\Absent_timming.wav**)
+3. load “Patient ID”，按照 8:2 将 patient ID 划分为 train-set/test-set 并存为 CSV >>absnet_train/test_id.csv,
+   present_train/test_id.csv
 4. 按照 CSV 将 wav 文件存入 train/test 文件夹 (**>>copy_wav**)[此步取消]
 5. 遍历 train/test 文件夹，在 **get_wav_data**中对 wav 进行操作
-   - 重采样至 16k
-   - 设定每条 wav 数据长度为**3500**对长度不足 3500 的 wav 数据 padding,对于大于 3500 的特征裁剪,\[0:3500\]\( **\>\>get_mfcc_features** \)
-   - 将裁剪后的 wav 数据保存为单独的.csv 文件并 append 到列表中，最后返回一个包含所有 wav 数据的数组
-   - **保存 wav 返回的 array 数组和 label 为.npy ,下次直接读取**
+    - 重采样至 16k
+    - 设定每条 wav 数据长度为**3500**对长度不足 3500 的 wav 数据 padding,对于大于 3500 的特征裁剪,\[0:3500\]\( *
+      *\>\>get_mfcc_features** \)
+    - 将裁剪后的 wav 数据保存为单独的.csv 文件并 append 到列表中，最后返回一个包含所有 wav 数据的数组
+    - **保存 wav 返回的 array 数组和 label 为.npy ,下次直接读取**
 6. 设置超参数，如 masking、调整训练和测试数据集大小，Absent\/Present 比例、lr 等细节。
 7. 通过 MayDataset 和 dataloader 生成**train_loader，test_loader**
 8. 训练模型 9.保存模型结果等信息

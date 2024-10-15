@@ -6,19 +6,12 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from torch import optim
-# import numpy as np
-# import sklearn.metrics
-# from torch.cuda.amp import autocast, GradScaler
-# from util.BEATs_def import draw_confusion_matrix, butterworth_low_pass_filter
 from torch.utils.tensorboard import SummaryWriter
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, \
     binary_accuracy, binary_precision, binary_recall
 from transformers import optimization
-
-# from util.BEATs_def import Log_GF
-# , get_segment_target_list, FocalLoss_VGG
-from util.utils_train import  segment_classifier
 from util.class_def import FocalLoss
+from util.utils_train import segment_classifier
 
 
 def train_test(model,
@@ -64,9 +57,9 @@ def train_test(model,
     if args.loss_type == "FocalLoss":
         loss_fn = FocalLoss()
     elif args.loss_type == "CE_weighted":
-        normedWeights = [1, 5]
-        normedWeights = torch.FloatTensor(normedWeights).to(device)
-        loss_fn = nn.CrossEntropyLoss(weight=normedWeights)  # 内部会自动加上Softmax层,weight=normedWeights
+        normed_weights = [1, 5]
+        normed_weights = torch.FloatTensor(normed_weights).to(device)
+        loss_fn = nn.CrossEntropyLoss(weight=normed_weights)  # 内部会自动加上Softmax层,weight=normedWeights
     else:
         loss_fn = nn.CrossEntropyLoss()
     # ========================/ 训练网络 /========================== #
@@ -152,8 +145,9 @@ def train_test(model,
         test_PPV = binary_precision(test_patient_input, test_patient_target)
         test_TPR = binary_recall(test_patient_input, test_patient_target)
         "保存最好的模型"
-        # if test_patient_acc > best_acc and args.saveModel is True:
-        #     best_acc = test_patient_acc
+        if test_patient_acc > best_acc :
+            best_acc = test_patient_acc
+            # if  args.saveModel is True:
         #     save_checkpoint({"epoch": epochs + 1,
         #                      "model": model.state_dict(),
         #                      "optimizer": optimizer.state_dict()},

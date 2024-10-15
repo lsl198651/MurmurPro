@@ -29,8 +29,8 @@ def train_test(model,
     "声明"
     error_index_path = r"./error_index/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
     patient_error_index_path = r"./patient_error_index/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
-    os.makedirs(error_index_path,exist_ok=True)
-    os.makedirs(patient_error_index_path,exist_ok=True)
+    os.makedirs(error_index_path, exist_ok=True)
+    os.makedirs(patient_error_index_path, exist_ok=True)
     tb_writer = SummaryWriter(r"./tensorboard/" + str(datetime.now().strftime("%Y-%m%d %H%M")))
 
     lr = []

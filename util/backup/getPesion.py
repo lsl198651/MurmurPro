@@ -1,6 +1,8 @@
-from re import split
-import numpy as np
 import csv
+
+import numpy as np
+
+
 # 先去掉分错的idx
 
 
@@ -21,8 +23,8 @@ present_idx = csv_reader_cl(present_idx_path, 0)
 present_names = csv_reader_cl(present_idx_path, 1)
 absent_idx = csv_reader_cl(absnet_idx_path, 0)
 absent_names = csv_reader_cl(absnet_idx_path, 1)
-all_idx = present_idx+absent_idx
-correct_idx = list(set(all_idx)-set(error_idx))
+all_idx = present_idx + absent_idx
+correct_idx = list(set(all_idx) - set(error_idx))
 correct_names = []
 for idx in correct_idx:
     if idx in present_idx:
@@ -37,7 +39,7 @@ location = []
 locations_murmur = {}
 for name in correct_names:
     name_string = name.split("_")
-    key = name_string[0]+"_"+name_string[1]
+    key = name_string[0] + "_" + name_string[1]
     period = "s1" if (name_string[2] == "s1+Systolic") else "s2"
     murmur = 0 if (name_string[4] == "Absent") else 1
     if key not in locations_murmur:

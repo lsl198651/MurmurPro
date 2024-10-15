@@ -1,8 +1,9 @@
-import numpy as np
 import random
-import torchaudio
+
 import librosa
+import numpy as np
 import torch
+import torchaudio
 from torchaudio import transforms
 
 """
@@ -20,6 +21,8 @@ def get_sex(data):
             except:
                 pass
     return sex
+
+
 # Compare normalized strings.
 
 
@@ -57,7 +60,7 @@ def get_age(data):
 
 
 def get_features_mod(data):
-   # Extract the age group, sex and the pregnancy status features
+    # Extract the age group, sex and the pregnancy status features
     age_group = get_age(data)
     age_list = ['Neonate', 'Infant', 'Child', 'Adolescent', 'Young Adult']
     is_pregnant = get_pregnancy_status_mod(data)
@@ -124,8 +127,8 @@ class AudioUtil():
 
         if sig_len > max_len:
             # random select the max_len
-            cut_start = random.randint(0, sig_len-max_len)
-            sig = sig[:, cut_start:max_len+cut_start]
+            cut_start = random.randint(0, sig_len - max_len)
+            sig = sig[:, cut_start:max_len + cut_start]
         elif sig_len < max_len:
             # length of padding to add at the beginning and end of the signal
             pad_begin_len = random.randint(0, max_len - sig_len)
@@ -167,7 +170,7 @@ class AudioUtil():
         sig, sr = aud
         num_rows, sig_len = sig.shape
         wn = np.random.randn(sig_len)
-        sig = sig + 0.005*wn
+        sig = sig + 0.005 * wn
         return (sig, sr)
 
     @staticmethod
@@ -176,8 +179,8 @@ class AudioUtil():
         if aug_apply.to(torch.bool):
             sig, sr = aud
             num_rows, sig_len = sig.shape
-            p_sig = np.sum(abs(sig.numpy())**2)/sig_len
-            p_noise = p_sig / 10 ** (snr/10)
+            p_sig = np.sum(abs(sig.numpy()) ** 2) / sig_len
+            p_noise = p_sig / 10 ** (snr / 10)
             wn = np.random.randn(sig_len) * np.sqrt(p_noise)
             wn_new = np.tile(wn, (num_rows, 1))
             sig_new = sig.numpy() + wn_new
@@ -206,7 +209,8 @@ class AudioUtil():
             y=sig.numpy(), sr=16000, n_fft=200, hop_length=10)[0]
         spec_bw = librosa.feature.spectral_bandwidth(
             y=sig.numpy(), sr=16000, n_fft=200, hop_length=10)
-        return np.mean(spectral_centroids) / 8000, np.std(spectral_centroids)/8000, np.mean(spec_bw)/8000, np.std(spec_bw)/8000
+        return np.mean(spectral_centroids) / 8000, np.std(spectral_centroids) / 8000, np.mean(spec_bw) / 8000, np.std(
+            spec_bw) / 8000
 
     # -------
     # generate a spectrogram
@@ -254,5 +258,5 @@ def hand_fea(aud):
     zcr_mean, zcr_std = AudioUtil.get_zrc(aud)
     spec_mean, spec_std, spbw_mean, spbw_std = AudioUtil.get_spec(aud)
     fea = np.asarray([zcr_mean, zcr_std, spec_mean,
-                     spec_std, spbw_mean, spbw_std], dtype=np.float32)
+                      spec_std, spbw_mean, spbw_std], dtype=np.float32)
     return fea

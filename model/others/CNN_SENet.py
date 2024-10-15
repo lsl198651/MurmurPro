@@ -1,11 +1,10 @@
+from typing import Callable, List, Optional
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import init
 import torchaudio.compliance.kaldi as ta_kaldi
-import torchaudio.transforms as TT
-from typing import Any, Callable, List, Optional, Type, Union
 from torch import Tensor
+
 
 # 暂时没有什么用
 
@@ -24,15 +23,15 @@ class Bottleneck(nn.Module):
     expansion: int = 4
 
     def __init__(
-        self,
-        inplanes: int,
-        planes: int,
-        stride: int = 1,
-        downsample: Optional[nn.Module] = None,
-        groups: int = 1,
-        base_width: int = 64,
-        dilation: int = 1,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
+            self,
+            inplanes: int,
+            planes: int,
+            stride: int = 1,
+            downsample: Optional[nn.Module] = None,
+            groups: int = 1,
+            base_width: int = 64,
+            dilation: int = 1,
+            norm_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -113,15 +112,15 @@ class BasicBlock(nn.Module):
     expansion: int = 1
 
     def __init__(
-        self,
-        inplanes: int,
-        planes: int,
-        stride: int = 1,
-        downsample: Optional[nn.Module] = None,
-        groups: int = 1,
-        base_width: int = 64,
-        dilation: int = 1,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
+            self,
+            inplanes: int,
+            planes: int,
+            stride: int = 1,
+            downsample: Optional[nn.Module] = None,
+            groups: int = 1,
+            base_width: int = 64,
+            dilation: int = 1,
+            norm_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
         super().__init__()
         if norm_layer is None:
@@ -207,7 +206,7 @@ class AudioClassifier_SENet(nn.Module):
                  groups: int = 1,
                  width_per_group: int = 64,
                  replace_stride_with_dilation: Optional[List[bool]] = None,
-                 norm_layer: Optional[Callable[..., nn.Module]] = None,):
+                 norm_layer: Optional[Callable[..., nn.Module]] = None, ):
         super().__init__()
         # conv_layers = []
         # self.bn0 = nn.BatchNorm2d(1)
@@ -265,9 +264,9 @@ class AudioClassifier_SENet(nn.Module):
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
         self.layer1 = self._make_layer(SEBasicBlock, 32)
         self.layer2 = self._make_layer(
-            SEBasicBlock, 32,  stride=1, dilate=False)
+            SEBasicBlock, 32, stride=1, dilate=False)
         self.layer3 = self._make_layer(
-            SEBasicBlock, 32,  stride=1, dilate=False)
+            SEBasicBlock, 32, stride=1, dilate=False)
         self.layer4 = self._make_layer(
             SEBasicBlock, 64, stride=1, dilate=False)
 
@@ -284,11 +283,11 @@ class AudioClassifier_SENet(nn.Module):
         self.dp = nn.Dropout(p=0.3)
 
     def _make_layer(
-        self,
-        block,
-        planes: int,
-        stride: int = 1,
-        dilate: bool = False,
+            self,
+            block,
+            planes: int,
+            stride: int = 1,
+            dilate: bool = False,
     ) -> nn.Sequential:
         norm_layer = self._norm_layer
         downsample = None
@@ -329,6 +328,7 @@ class AudioClassifier_SENet(nn.Module):
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
+
     # ----------------------------
     # Forward pass computations
     # ----------------------------

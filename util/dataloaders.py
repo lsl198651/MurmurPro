@@ -1,10 +1,11 @@
-import numpy as np
 import random
+
+import numpy as np
 
 
 def get_features(args):
     npy_path_padded = r"D:\Shilong\murmur\01_dataset\01_s1s2\npyFile_padded\normalized\list_npy_files"
-# ------------------------/ load features /-------------------------- #
+    # ------------------------/ load features /-------------------------- #
     absent_train_features = np.load(
         npy_path_padded + r"\absent_train_features_norm.npy", allow_pickle=True
     )
@@ -17,7 +18,7 @@ def get_features(args):
     present_test_features = np.load(
         npy_path_padded + r"\present_test_features_norm.npy", allow_pickle=True
     )
-# ------------------------/ load labels /-------------------------- #
+    # ------------------------/ load labels /-------------------------- #
     absent_train_label = np.load(
         npy_path_padded + r"\absent_train_label_norm.npy", allow_pickle=True
     )
@@ -30,7 +31,7 @@ def get_features(args):
     present_test_label = np.load(
         npy_path_padded + r"\present_test_label_norm.npy", allow_pickle=True
     )
-#  =============================/ load index /============================= #
+    #  =============================/ load index /============================= #
 
     absent_test_index = np.load(
         npy_path_padded + r"\absent_test_index_norm.npy", allow_pickle=True

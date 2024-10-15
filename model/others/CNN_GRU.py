@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import init
 import torchaudio.compliance.kaldi as ta_kaldi
-import torchaudio.transforms as TT
+from torch.nn import init
 
 
 # ----------------------------
@@ -28,7 +26,7 @@ class AudioClassifier_CNNGRU(nn.Module):
         self.dp1 = nn.Dropout(p=0.15)
         init.kaiming_normal_(self.conv1.weight, a=0.1)
         self.conv1.bias.data.zero_()
-        conv_layers += [self.conv1, self.bn1, self.relu1,  self.mp1]
+        conv_layers += [self.conv1, self.bn1, self.relu1, self.mp1]
 
         # Second Convolution Block
         self.conv2 = nn.Conv2d(32, 32, kernel_size=(
@@ -66,8 +64,7 @@ class AudioClassifier_CNNGRU(nn.Module):
         # self.wide = nn.Linear(in_features=15, out_features=20)
         self.lin = nn.Linear(in_features=64, out_features=2)
         # Wrap the Convolutional Blocks
-        self.gru=nn.GRU(input_size=64,hidden_size=64,num_layers=1,batch_first=True)
-
+        self.gru = nn.GRU(input_size=64, hidden_size=64, num_layers=1, batch_first=True)
 
     # calculate fbank value
     def preprocess(
@@ -88,6 +85,7 @@ class AudioClassifier_CNNGRU(nn.Module):
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
+
     # ----------------------------
     # Forward pass computations
     # ----------------------------
@@ -101,7 +99,7 @@ class AudioClassifier_CNNGRU(nn.Module):
         # Adaptive pool and flatten for input to linear layer
         x = self.ap(x)
         x_all = x.view(x.shape[0], -1)
-        x=self.gru(x_all)
+        x = self.gru(x_all)
         # add wide features and concat two layers
         # print(x1.size())
         # x1 = self.wide(wavfeat)
@@ -112,4 +110,3 @@ class AudioClassifier_CNNGRU(nn.Module):
         # x_all = torch.softmax(x_all, dim=1)
         # Final output
         return x_all
-

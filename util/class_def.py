@@ -1,7 +1,8 @@
 import torch
-from torch.utils.data import Dataset
 import torch.nn as nn
 from torch.autograd import Variable
+from torch.utils.data import Dataset
+
 
 class FocalLoss(nn.Module):
     """Focal Loss"""
@@ -40,7 +41,6 @@ class FocalLoss(nn.Module):
             return loss.mean()
         else:
             return loss.sum()
-
 
 
 class DatasetClass(Dataset):
@@ -95,7 +95,7 @@ class BCEFocalLoss(nn.Module):
         # 在原始ce上增加动态权重因子，注意alpha的写法，下面多类时不能这样使用
         self.gamma = self.gamma.view(target.size)
         loss = - self.alpha * (1 - pt) ** self.gamma * target * torch.log(pt) - (
-            1 - self.alpha) * pt ** self.gamma * (1 - target) * torch.log(1 - pt)
+                1 - self.alpha) * pt ** self.gamma * (1 - target) * torch.log(1 - pt)
 
         if self.reduction == 'mean':
             loss = torch.mean(loss)
@@ -129,12 +129,13 @@ class FocalLoss_VGG(nn.Module):
             CE_loss = nn.CrossEntropyLoss(
                 inputs, targets, reduce=True)
         pt = torch.exp(-BCE_loss)
-        F_loss = self.alpha * (1-pt)**self.gamma * BCE_loss
+        F_loss = self.alpha * (1 - pt) ** self.gamma * BCE_loss
 
         if self.reduce:
             return torch.mean(F_loss)
         else:
             return F_loss
+
 
 class MyDataset(Dataset):
     """my dataset."""

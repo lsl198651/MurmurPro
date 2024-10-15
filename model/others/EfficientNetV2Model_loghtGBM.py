@@ -1,11 +1,11 @@
 from collections import OrderedDict
 from functools import partial
 from typing import Callable, Optional
-from torch.nn import init
-import torch.nn as nn
+
 import torch
-from torch import Tensor
+import torch.nn as nn
 import torchaudio.compliance.kaldi as ta_kaldi
+from torch import Tensor
 
 
 def drop_path(x, drop_prob: float = 0., training: bool = False):
@@ -23,7 +23,7 @@ def drop_path(x, drop_prob: float = 0., training: bool = False):
     # work with diff dim tensors, not just 2D ConvNets
     shape = (x.shape[0],) + (1,) * (x.ndim - 1)
     random_tensor = keep_prob + \
-        torch.rand(shape, dtype=x.dtype, device=x.device)
+                    torch.rand(shape, dtype=x.dtype, device=x.device)
     random_tensor.floor_()  # binarize
     output = x.div(keep_prob) * random_tensor
     return output
@@ -81,7 +81,7 @@ class ConvBNAct(nn.Module):
 
 class SqueezeExcite(nn.Module):
     def __init__(self,
-                 input_c: int,   # block input channel
+                 input_c: int,  # block input channel
                  expand_c: int,  # block expand channel
                  se_ratio: float = 0.25):
         super(SqueezeExcite, self).__init__()
@@ -320,7 +320,7 @@ class EfficientNetV2(nn.Module):
         self.dp1 = nn.Dropout(p=0.15)
         # init.kaiming_normal_(self.conv1.weight, a=0.1)
         self.conv1.bias.data.zero_()
-        conv_layers += [self.conv1, self.bn1, self.relu1,  self.mp1]
+        conv_layers += [self.conv1, self.bn1, self.relu1, self.mp1]
 
         # Second Convolution Block
         self.conv2 = nn.Conv2d(640, 160, kernel_size=(
@@ -381,6 +381,7 @@ class EfficientNetV2(nn.Module):
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
+
     # ---------------
 
     def forward(self, x: Tensor) -> Tensor:
@@ -389,9 +390,9 @@ class EfficientNetV2(nn.Module):
         x = self.stem(fbank)
         x = self.blocks(x)
         x = self.head(x)
-        x=self.conv(x)
-        x=x.squeeze()
-        x=self.classifier(x)
+        x = self.conv(x)
+        x = x.squeeze()
+        x = self.classifier(x)
 
         return x
 

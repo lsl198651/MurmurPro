@@ -1,8 +1,8 @@
-from torch import nn
 import torch
 import torchaudio.compliance.kaldi as ta_kaldi
-import torchaudio.compliance.kaldi as ta_kaldi
+from torch import nn
 from torch.nn import init
+
 
 def _make_divisible(ch, divisor=8, min_ch=None):
     """
@@ -75,7 +75,7 @@ class MobileNetV2(nn.Module):
         self.dp1 = nn.Dropout(p=0.15)
         init.kaiming_normal_(self.conv1.weight, a=0.1)
         self.conv1.bias.data.zero_()
-        conv_layers += [self.conv1, self.bn1, self.relu1,  self.mp1]
+        conv_layers += [self.conv1, self.bn1, self.relu1, self.mp1]
 
         # Second Convolution Block
         self.conv2 = nn.Conv2d(640, 160, kernel_size=(
@@ -185,9 +185,9 @@ class MobileNetV2(nn.Module):
         fbank = self.preprocess(x, args=None)
         fbank = fbank.unsqueeze(1)
         x = self.features(fbank)
-        x=self.conv(x)
+        x = self.conv(x)
         x = self.ap(x)
         # x = torch.flatten(x, 1)
-        x=x.squeeze()
+        x = x.squeeze()
         x = self.classifier(x)
         return x

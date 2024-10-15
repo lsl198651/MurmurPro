@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import init
 import torchaudio.compliance.kaldi as ta_kaldi
 
 
@@ -118,7 +116,7 @@ class AudioClassifier(nn.Module):
         self.dense2 = nn.Linear(in_features=128, out_features=2)
         self.dp = nn.Dropout(p=0.5)
 
-    def preprocess(self, source: torch.Tensor, args=None,) -> torch.Tensor:
+    def preprocess(self, source: torch.Tensor, args=None, ) -> torch.Tensor:
         fbanks = []
         for waveform in source:
             # waveform = waveform.unsqueeze(0) * 2 ** 15  # wavform × 2^15
@@ -131,6 +129,7 @@ class AudioClassifier(nn.Module):
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
+
     # ----------------------------
     # Forward pass computations
     # ----------------------------

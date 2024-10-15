@@ -1,41 +1,32 @@
 # from pickle import TRUE
 # from re import split
 # from sympy import true
-import torch
-import sys
-import torch.nn as nn
 # import torch.optim as optim
 # import torchvision
-import torch
-import torch.nn.functional as F
-# from utils import _log_api_usage_once
-import matplotlib.pyplot as plt
 import csv
+import logging
 import os
-import librosa
-import torch
 # import pywt
 import shutil
-import pandas as pd
+
+import librosa
+# from utils import _log_api_usage_once
+import matplotlib.pyplot as plt
 import numpy as np
-import logging
-import datetime
+import pandas as pd
+import torch
+import torch.nn.functional as F
 # import random
 # import torchaudio
 # from torchaudio import transforms
-from IPython.display import display
-from sklearn.metrics import confusion_matrix
-from torch.utils.data import Dataset
-from datetime import datetime
 # from torch.utils.data import DataLoader, Dataset
 # from torch.utils.tensorboard import SummaryWriter
-from torch.autograd import Variable
 from pydub import AudioSegment
-from scipy import signal
 # from sklearn import preprocessing
 # from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, binary_accuracy, binary_precision, binary_recall
-import warnings
 from scipy import signal
+
+
 # from python_speech_features import logfbank
 # from spafe.features.gfcc import erb_spectrogram
 # from spafe.utils.preprocessing import SlidingWindow
@@ -90,11 +81,10 @@ from scipy import signal
 
 
 def butterworth_low_pass_filter(original_signal, order=3, lowcut=25, highcut=800, sampling_frequency=16000):
-
     # Get the butterworth filter coefficients
-    low = 2*lowcut / sampling_frequency
+    low = 2 * lowcut / sampling_frequency
     high = highcut / sampling_frequency
-    B, A = signal.butter(order, [low, high],  btype='bandpass')
+    B, A = signal.butter(order, [low, high], btype='bandpass')
     # Forward-backward filter the original signal using the butterworth
     # coefficients, ensuring zero phase distortion
     filtered_signal = np.zeros(original_signal.shape)
@@ -174,8 +164,8 @@ def wav_reverse(dir_path, save_path):
             temp = AudioSegment.from_file(wav_path, format="wav")
             backplay = temp.reverse()
             # 存为相关格式倒放文件
-            reverse_name = subfile.split(".")[0]+"_reverse"
-            backplay.export(save_path+reverse_name+".wav", format="wav")
+            reverse_name = subfile.split(".")[0] + "_reverse"
+            backplay.export(save_path + reverse_name + ".wav", format="wav")
 
 
 # def get_wav_data(dir_path, num=0):
@@ -281,9 +271,6 @@ def get_mel_features(dir_path, absent_id, present_id):
             if id in present_id:
                 label_list.append(0)
     return np.array(feature_list), np.array(label_list)
-
-
-
 
 
 # class DatasetClass(Dataset):
@@ -572,17 +559,11 @@ def get_mel_features(dir_path, absent_id, present_id):
 #     return segment_acc, segment_cm, patient_output, patient_target, patient_error_id
 
 
-
-
-
-
-
-
 def sigmoid_focal_loss(
-    inputs: torch.Tensor,
-    targets: torch.Tensor,
-    alpha: float = 0.25,
-    gamma: float = 2,
+        inputs: torch.Tensor,
+        targets: torch.Tensor,
+        alpha: float = 0.25,
+        gamma: float = 2,
 ) -> torch.Tensor:
     """
     Loss used in RetinaNet for dense detection: https://arxiv.org/abs/1708.02002.
@@ -666,12 +647,12 @@ class save_info(object):
 
 
 def draw_confusion_matrix(
-    cm,
-    label_name,
-    title="Confusion Matrix",
-    pdf_save_path=None,
-    dpi=600,
-    epoch=0,
+        cm,
+        label_name,
+        title="Confusion Matrix",
+        pdf_save_path=None,
+        dpi=600,
+        epoch=0,
 ):
     """
 

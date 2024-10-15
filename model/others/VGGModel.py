@@ -1,10 +1,9 @@
+from abc import abstractmethod
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from abc import abstractmethod
-import torch.nn as nn
 import torchaudio.compliance.kaldi as ta_kaldi
 
 
@@ -12,6 +11,7 @@ class BaseModel(nn.Module):
     """
     Base class for all models
     """
+
     @abstractmethod
     def forward(self, *inputs):
         """
@@ -28,6 +28,7 @@ class BaseModel(nn.Module):
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())
         params = sum([np.prod(p.size()) for p in model_parameters])
         return super().__str__() + '\nTrainable parameters: {}'.format(params)
+
 
 # functions of initializing layers
 
@@ -180,7 +181,7 @@ class VGG_11(BaseModel):
         self.conv2 = ConvBlock(in_channels=64, out_channels=128)
         self.conv3 = ConvBlock(in_channels=128, out_channels=256)
         self.conv4 = ConvBlock(in_channels=256, out_channels=512)
-        self.fc_final1 = nn.Linear(512+5, 256)
+        self.fc_final1 = nn.Linear(512 + 5, 256)
         self.fc_final2 = nn.Linear(256, num_classes)
         self.init_weights()
 
@@ -190,6 +191,7 @@ class VGG_11(BaseModel):
         init_layer(self.fc_final2)
 
         # calculate fbank value
+
     def preprocess(
             self,
             source: torch.Tensor,
@@ -449,7 +451,7 @@ class FocalLoss_VGG(nn.Module):
         # else:
         CE_loss = nn.CrossEntropyLoss(inputs, targets, reduce=False)
         pt = torch.exp(-CE_loss)
-        F_loss = self.alpha * (1-pt)**self.gamma * CE_loss
+        F_loss = self.alpha * (1 - pt) ** self.gamma * CE_loss
 
         if self.reduce:
             return torch.mean(F_loss)

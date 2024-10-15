@@ -5,7 +5,6 @@
 # 1.
 # 2.
 
-import os
 from utils_dataset import *
 
 # ========================/ functions define /========================== #
@@ -380,7 +379,7 @@ from utils_dataset import *
 # ========================/ code executive /========================== #
 # ==================================================================== #
 if __name__ == '__main__':
-    csv_path = r"D:\Shilong\murmur\dataset_all\training_data.csv"
+    csv_path = r"D:\Shilong\new_murmur\PCGdataset\training_data.csv"
     # csv_path = r"D:\Shilong\murmur\Dataset\PCGdataset\validation_data.csv"
 
     # # get dataset tag from table
@@ -401,7 +400,7 @@ if __name__ == '__main__':
     Systolic_murmur_timing = csv_reader_cl(csv_path, tag_list[3])
     Diastolic_murmur_timing = csv_reader_cl(csv_path, tag_list[4])
     # TODO 修改此处的root_path
-    root_path = r"D:\Shilong\murmur\01_dataset\14_baseset_4s_mel_4k"
+    root_path = r"D:\Shilong\new_murmur\02_dataset\01_4s_4k"
     # root_path = r"D:\Shilong\murmur\01_dataset\validset_4k"
     # data_set(root_path)
     if not os.path.exists(root_path):
@@ -455,7 +454,7 @@ if __name__ == '__main__':
 
     # TODO 修改此处的src_path
     # src_path = r"D:\Shilong\murmur\dataset_all\training_data"
-    src_path = r"D:\Shilong\murmur\Dataset\PCGdataset\training_data"
+    src_path = r"D:\Shilong\new_murmur\PCGdataset\training_data"
     folder_path = root_path + "\\"
 
     # 将wav文件和tsv文件copy到目标文件夹

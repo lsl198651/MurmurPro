@@ -1,10 +1,7 @@
-import math
-
-import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn import init
 import torchaudio.compliance.kaldi as ta_kaldi
+from torch.nn import init
+
 from .triplet_attention import *
 
 
@@ -19,7 +16,7 @@ class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(
-        self, inplanes, planes, stride=1, downsample=None, use_triplet_attention=False
+            self, inplanes, planes, stride=1, downsample=None, use_triplet_attention=False
     ):
         super(BasicBlock, self).__init__()
         self.conv1 = conv3x3(inplanes, planes, stride)
@@ -61,7 +58,7 @@ class Bottleneck(nn.Module):
     expansion = 4
 
     def __init__(
-        self, inplanes, planes, stride=1, downsample=None, use_triplet_attention=False
+            self, inplanes, planes, stride=1, downsample=None, use_triplet_attention=False
     ):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
@@ -186,7 +183,7 @@ class ResNet(nn.Module):
             )
 
         return nn.Sequential(*layers)
-    
+
     def preprocess(
             self,
             source: torch.Tensor,
@@ -203,7 +200,6 @@ class ResNet(nn.Module):
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
-
 
     def forward(self, x):
         fbank = self.preprocess(x)
@@ -229,7 +225,6 @@ class ResNet(nn.Module):
 
 
 def ResidualNet(network_type, depth, num_classes, att_type):
-
     # assert network_type in [
     #     "ImageNet",
     #     "CIFAR10",

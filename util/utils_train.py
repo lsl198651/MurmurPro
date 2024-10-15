@@ -48,7 +48,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
         present_test_index = np.load(npy_path_padded + f"\\present_index_norm01_fold{k}.npy", allow_pickle=True)
         absent_test_names = np.load(npy_path_padded + f"\\absent_name_norm01_fold{k}.npy", allow_pickle=True)
         present_test_names = np.load(npy_path_padded + f"\\present_name_norm01_fold{k}.npy", allow_pickle=True)
-   # todo 可以测一下这个字典names,index组合对不对"""
+    # todo 可以测一下这个字典names,index组合对不对"""
     absent_test_dic = dict(zip(absent_test_names, absent_test_index))
     present_test_dic = dict(zip(present_test_names, present_test_index))
     # 所有测试数据的字典

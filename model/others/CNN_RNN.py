@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import init
 import torchaudio.compliance.kaldi as ta_kaldi
-import torchaudio.transforms as TT
+from torch.nn import init
+
+
 # import timm
 
 
@@ -19,7 +19,7 @@ class AudioClassifier_RNN(nn.Module):
     def __init__(self):
         super().__init__()
         conv_layers = []
-        rnn_layers=[]
+        rnn_layers = []
         self.bn0 = nn.BatchNorm2d(1)
         # First Convolution Block with Relu and Batch Norm. Use Kaiming Initialization
         self.conv1 = nn.Conv2d(1, 32, kernel_size=(
@@ -30,7 +30,7 @@ class AudioClassifier_RNN(nn.Module):
         self.dp1 = nn.Dropout(p=0.15)
         init.kaiming_normal_(self.conv1.weight, a=0.1)
         self.conv1.bias.data.zero_()
-        conv_layers += [self.conv1, self.bn1, self.relu1,  self.mp1]
+        conv_layers += [self.conv1, self.bn1, self.relu1, self.mp1]
 
         # Second Convolution Block
         self.conv2 = nn.Conv2d(32, 32, kernel_size=(
@@ -73,29 +73,29 @@ class AudioClassifier_RNN(nn.Module):
 
         # 设置rnn
         # layer1
-        self.rnn1=nn.RNN(1,32,1,batch_first=True)
-        self.tanh=nn.Tanh()
-        self.bn1=nn.BatchNorm1d(32)
-        init.kaiming_normal_(self.rnn1.weight, a=0.1)        
-        rnn_layers+=[self.rnn1,self.tanh,self.bn1,self.rnn2]
+        self.rnn1 = nn.RNN(1, 32, 1, batch_first=True)
+        self.tanh = nn.Tanh()
+        self.bn1 = nn.BatchNorm1d(32)
+        init.kaiming_normal_(self.rnn1.weight, a=0.1)
+        rnn_layers += [self.rnn1, self.tanh, self.bn1, self.rnn2]
         # layer 2
-        self.rnn2=nn.RNN(32,32,1,batch_first=False)
-        self.tanh=nn.Tanh()
-        self.bn2=nn.BatchNorm1d(32)
+        self.rnn2 = nn.RNN(32, 32, 1, batch_first=False)
+        self.tanh = nn.Tanh()
+        self.bn2 = nn.BatchNorm1d(32)
         init.kaiming_normal_(self.rnn2.weight, a=0.1)
-        rnn_layers+=[self.rnn2,self.tanh,self.bn2]
+        rnn_layers += [self.rnn2, self.tanh, self.bn2]
         # layer 3
-        self.rnn3=nn.RNN(32,32,1,batch_first=False)  
-        self.tanh=nn.Tanh()
-        self.bn3=nn.BatchNorm1d(32)
+        self.rnn3 = nn.RNN(32, 32, 1, batch_first=False)
+        self.tanh = nn.Tanh()
+        self.bn3 = nn.BatchNorm1d(32)
         init.kaiming_normal_(self.rnn3.weight, a=0.1)
-        rnn_layers+=[self.rnn3,self.tanh,self.bn3]
+        rnn_layers += [self.rnn3, self.tanh, self.bn3]
         # layer 4
-        self.rnn4=nn.RNN(32,64,1,batch_first=False)
-        self.tanh=nn.Tanh()
-        self.bn4=nn.BatchNorm1d(64)
+        self.rnn4 = nn.RNN(32, 64, 1, batch_first=False)
+        self.tanh = nn.Tanh()
+        self.bn4 = nn.BatchNorm1d(64)
         init.kaiming_normal_(self.rnn4.weight, a=0.1)
-        rnn_layers+=[self.rnn4,self.tanh,self.bn4]
+        rnn_layers += [self.rnn4, self.tanh, self.bn4]
         self.rnnlayers = nn.Sequential(*rnn_layers)
 
     # calculate fbank value
@@ -114,6 +114,7 @@ class AudioClassifier_RNN(nn.Module):
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
+
     # ----------------------------
     # Forward pass computations
     # ----------------------------
@@ -136,5 +137,3 @@ class AudioClassifier_RNN(nn.Module):
         # x_all = torch.softmax(x_all, dim=1)
         # Final output
         return x_all
-
-

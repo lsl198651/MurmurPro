@@ -1,4 +1,5 @@
 import torch.nn as nn
+
 from model.senet.my_resnet import My_ResNet
 
 
@@ -57,6 +58,7 @@ class BasicBlock(nn.Module):
         out = self.relu(out)
 
         return out
+
 
 # TODO 这是resnet6的网络结构
 

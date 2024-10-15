@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn import init
 import torchaudio.compliance.kaldi as ta_kaldi
-import torchaudio.transforms as TT
 
 
 # ----------------------------
@@ -48,6 +46,7 @@ class CNN1d(nn.Module):
         self.lin2 = nn.Linear(in_features=128, out_features=64)
         self.lin3 = nn.Linear(in_features=64, out_features=32)
         self.lin4 = nn.Linear(in_features=32, out_features=2)
+
     # calculate fbank value
 
     def preprocess(
@@ -67,6 +66,7 @@ class CNN1d(nn.Module):
             fbanks.append(fbank)
         fbank = torch.stack(fbanks, dim=0)
         return fbank
+
     # ----------------------------
     # Forward pass computations
     # ----------------------------

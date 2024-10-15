@@ -26,10 +26,9 @@ Gramian angular fields is retrieved (``ax_gasf.imshow(X_gasf[0], ...``).
 # Author: Johann Faouzi <johann.faouzi@gmail.com>
 # License: BSD-3-Clause
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from pyts.image import GramianAngularField
-
 
 # Create a toy time series using the sine function
 time_points = np.linspace(0, 4 * np.pi, 1000)
@@ -49,7 +48,7 @@ height_ratios = (2, 7)
 width = 10
 height = width * sum(height_ratios) / sum(width_ratios)
 fig = plt.figure(figsize=(width, height))
-gs = fig.add_gridspec(2, 4,  width_ratios=width_ratios,
+gs = fig.add_gridspec(2, 4, width_ratios=width_ratios,
                       height_ratios=height_ratios,
                       left=0.1, right=0.9, bottom=0.1, top=0.9,
                       wspace=0.1, hspace=0.1)
