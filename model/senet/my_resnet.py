@@ -286,9 +286,6 @@ class My_ResNet(nn.Module):
         #                        win_length=100, f_min=10, f_max=1000, n_mels=128)
         for waveform in source:
             waveform = waveform.unsqueeze(0)
-            # mel = mel.to('cuda')
-            # melspec = mel(waveform)
-            # logfbank = T.AmplitudeToDB()(melspec)
             fbank = ta_kaldi.fbank(waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
             fbank_mean = fbank.mean()
             fbank_std = fbank.std()

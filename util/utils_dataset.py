@@ -310,12 +310,12 @@ def data_set(root_path, is_by_state):
             for i in range(len(wav)):
                 mel = get_logmel_feature(wav[i])
                 mel_list.append(mel)
-            np.save(npy_path_padded + f"\\{folder}_mel_norm01_fold{k}.npy", mel_list)
-            np.save(npy_path_padded + f"\\{folder}_wav_norm01_fold{k}.npy", wav)
-            np.save(npy_path_padded + f"\\{folder}_labels_norm01_fold{k}.npy", label)
-            np.save(npy_path_padded + f"\\{folder}_index_norm01_fold{k}.npy", index)
-            np.save(npy_path_padded + f"\\{folder}_name_norm01_fold{k}.npy", names)
-            np.save(npy_path_padded + f"\\{folder}_feat_norm01_fold{k}.npy", feat)
+            np.save(npy_path_padded + f"\\{folder}_mel_norm01_fold{k}.npy", mel_list)  # mel谱特征
+            np.save(npy_path_padded + f"\\{folder}_wav_norm01_fold{k}.npy", wav)  # 原始数据
+            np.save(npy_path_padded + f"\\{folder}_labels_norm01_fold{k}.npy", label)  # 标签
+            np.save(npy_path_padded + f"\\{folder}_index_norm01_fold{k}.npy", index)  # 索引
+            np.save(npy_path_padded + f"\\{folder}_name_norm01_fold{k}.npy", names)  # 文件名
+            np.save(npy_path_padded + f"\\{folder}_feat_norm01_fold{k}.npy", feat)  # 人口特征
             absent_train_dic = zip(index, names, feat)
             pd.DataFrame(absent_train_dic).to_csv(index_path + f"\\fold{k}_{folder}_disc.csv", index=False,
                                                   header=False)

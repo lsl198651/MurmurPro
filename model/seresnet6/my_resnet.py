@@ -250,7 +250,7 @@ class My_ResNet(nn.Module):
 
     def preprocess(
             self,
-            source: torch.Tensor,
+            source: torch.Tensor
     ) -> torch.Tensor:
         fbanks = []
         for waveform in source:
