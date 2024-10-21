@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # TODO 修改此处的root_path
     root_path = r"D:\Shilong\new_murmur\02_dataset\01_s1s2_4k"
     # root_path = r"D:\Shilong\murmur\01_dataset\validset_4k"
-    # data_set(root_path)
+    data_set(root_path, is_by_state=True)
     mkdir(root_path)
     # save data to csv file
     pd.DataFrame(Murmur_locations).to_csv(root_path + r"\Murmur_locations.csv", index=False, header=False)
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     # 创建每个wav文件的文件夹
     for mur in murmur_class:
-        dir_path = folder_path + '\\' + mur
+        dir_path = folder_path + mur + "\\"
         for patient_id in absent_patient_id:
             pos_dir_make(dir_path, patient_id, position)
         for patient_id in present_patient_id:
@@ -130,4 +130,4 @@ if __name__ == '__main__':
         for murmur_class in ['absent', 'present']:
             src_fold_path = src_fold_root_path + "\\" + murmur_class + "\\"
 
-    data_set(root_path)
+    data_set(root_path, is_by_state=True)

@@ -12,9 +12,8 @@ from util.utils_features import get_features_mod, get_logmel_feature
 
 
 def mkdir(path):
-    folder = os.path.exists(path)
     # judge weather make dir or not
-    if not folder:
+    if not os.path.exists(path):
         os.makedirs(path)
 
 
@@ -87,8 +86,8 @@ def copy_wav_file(src_path, folder_path, patient_id_list, mur, position):
 def pos_dir_make(dir_path, patient_id, pos):
     for po in pos:
         subdir = dir_path + patient_id + "\\" + patient_id + po
-        wavname = subdir + ".wav"
-        if os.path.exists(wavname):
+        wav_name = subdir + ".wav"
+        if os.path.exists(wav_name):
             print("exist")
             mkdir(subdir)  # make dir
 
@@ -194,7 +193,8 @@ def state_div(
                 state_path
                 + f"{index}_s2+Diastolic_{num}_{diastolic_murmur}_{diastolic_state}_{human_feat}.wav",
                 buff2,
-                fs
+                fs,
+
             )
 
 
@@ -289,15 +289,13 @@ def copy_states_data(patient_id, folder, type, murmur):
                     print("dir not exist")
 
 
-def data_set(root_path):
+def data_set(root_path, is_by_state):
     """数据增强，包括时间拉伸和反转"""
     # root_path = r"D:\Shilong\murmur\01_dataset\06_new5fold"
     npy_path_padded = root_path + r"\npyFile_padded\npy_files01_norm"
     index_path = root_path + r"\npyFile_padded\index_files01_norm"
-    if not os.path.exists(npy_path_padded):
-        os.makedirs(npy_path_padded)
-    if not os.path.exists(index_path):
-        os.makedirs(index_path)
+    mkdir(npy_path_padded)
+    mkdir(index_path)
     for k in range(5):
         mel_list = []
         src_fold_root_path = root_path + r"\fold_set_" + str(k)
@@ -306,33 +304,25 @@ def data_set(root_path):
         for folder in os.listdir(src_fold_root_path):
             dataset_path = os.path.join(src_fold_root_path, folder)
             if k == 0 and folder == "absent":
-                wav, label, names, index, data_id, feat = get_wav_data(
-                    dataset_path, num=0)  # absent
+                wav, label, names, index, data_id, feat = get_wav_data(dataset_path, is_by_state, num=0)  # absent
             else:
-                wav, label, names, index, data_id, feat = get_wav_data(
-                    dataset_path, data_id)  # absent
+                wav, label, names, index, data_id, feat = get_wav_data(dataset_path, is_by_state, data_id)  # absent
             for i in range(len(wav)):
                 mel = get_logmel_feature(wav[i])
                 mel_list.append(mel)
-            np.save(npy_path_padded +
-                    f"\\{folder}_mel_norm01_fold{k}.npy", mel_list)
-            np.save(npy_path_padded +
-                    f"\\{folder}_wav_norm01_fold{k}.npy", wav)
-            np.save(npy_path_padded +
-                    f"\\{folder}_labels_norm01_fold{k}.npy", label)
-            np.save(npy_path_padded +
-                    f"\\{folder}_index_norm01_fold{k}.npy", index)
-            np.save(npy_path_padded +
-                    f"\\{folder}_name_norm01_fold{k}.npy", names)
-            np.save(npy_path_padded +
-                    f"\\{folder}_feat_norm01_fold{k}.npy", feat)
+            np.save(npy_path_padded + f"\\{folder}_mel_norm01_fold{k}.npy", mel_list)
+            np.save(npy_path_padded + f"\\{folder}_wav_norm01_fold{k}.npy", wav)
+            np.save(npy_path_padded + f"\\{folder}_labels_norm01_fold{k}.npy", label)
+            np.save(npy_path_padded + f"\\{folder}_index_norm01_fold{k}.npy", index)
+            np.save(npy_path_padded + f"\\{folder}_name_norm01_fold{k}.npy", names)
+            np.save(npy_path_padded + f"\\{folder}_feat_norm01_fold{k}.npy", feat)
             absent_train_dic = zip(index, names, feat)
-            pd.DataFrame(absent_train_dic).to_csv(
-                index_path + f"\\fold{k}_{folder}_disc.csv", index=False, header=False)
+            pd.DataFrame(absent_train_dic).to_csv(index_path + f"\\fold{k}_{folder}_disc.csv", index=False,
+                                                  header=False)
     print("data set is done!")
 
 
-def get_wav_data(dir_path, num=0):
+def get_wav_data(dir_path, is_by_state, num=0):
     """返回数据文件"""
     wav = []
     label = []
@@ -342,7 +332,10 @@ def get_wav_data(dir_path, num=0):
     # 设置采样率为4k，时间长度为4
     fs = 4000
     time = 4
-    data_length = fs * time
+    if is_by_state:
+        data_length = 1300
+    else:
+        data_length = fs * time
     for root, dir, file in os.walk(dir_path):
         for subfile in file:
             wav_path = os.path.join(root, subfile)
@@ -355,7 +348,6 @@ def get_wav_data(dir_path, num=0):
                 print("reading: " + subfile)
                 y, sr = librosa.load(wav_path, sr=4000)
                 # TODO 采样率:4k
-                # y_16k = librosa.resample(y=y, orig_sr=sr, target_sr=16000)
                 y_4k_norm = wav_normalize(y)  # 归一化
                 # 数据裁剪
                 if y_4k_norm.shape[0] < data_length:
@@ -363,12 +355,12 @@ def get_wav_data(dir_path, num=0):
                         y_4k_norm,
                         ((0, data_length - y_4k_norm.shape[0])),
                         "constant",
-                        constant_values=(0, 0),
+                        constant_values=(0, 0)
                     )
                 elif y_4k_norm.shape[0] > data_length:
                     # y_4k_norm = y_4k_norm[-data_length:]
                     y_4k_norm = y_4k_norm[:data_length]
-                print("num is " + str(num), "y_16k size: " + str(y_4k_norm.size))
+                print("num is " + str(num), "y_4k size: " + str(y_4k_norm.size))
 
                 wav.append(y_4k_norm)
                 file_name = subfile.split("_")
