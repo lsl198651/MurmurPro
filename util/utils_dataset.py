@@ -4,9 +4,6 @@ import shutil
 
 import librosa
 import librosa.display
-# from BEATs_def import mkdir
-# import soundfile as sf
-# from BEATs_def import get_wav_data
 import pandas as pd
 import soundfile
 
@@ -16,7 +13,7 @@ from util.utils_features import get_features_mod, get_logmel_feature
 
 def mkdir(path):
     folder = os.path.exists(path)
-    # judge wether make dir or not
+    # judge weather make dir or not
     if not folder:
         os.makedirs(path)
 
@@ -47,19 +44,18 @@ def copy_file(src_path, folder_path, patient_id_list, mur, position):
             target_dir = folder_path + "\\" + mur + "\\" + patient_id + "\\"
             os.makedirs(target_dir, exist_ok=True)
 
-            txtname = src_path + "\\" + patient_id + ".txt"
-            wavname = src_path + "\\" + patient_id + pos + ".wav"
-            heaname = src_path + "\\" + patient_id + pos + ".hea"
-            tsvname = src_path + "\\" + patient_id + pos + ".tsv"
-
-            if os.path.exists(txtname):
-                shutil.copy(txtname, target_dir + "\\")
-            if os.path.exists(wavname):
-                shutil.copy(wavname, target_dir + "\\")
-            if os.path.exists(heaname):
-                shutil.copy(heaname, target_dir + "\\")
-            if os.path.exists(tsvname):
-                shutil.copy(tsvname, target_dir + "\\")
+            txt_name = src_path + "\\" + patient_id + ".txt"
+            wav_name = src_path + "\\" + patient_id + pos + ".wav"
+            hea_name = src_path + "\\" + patient_id + pos + ".hea"
+            tsv_name = src_path + "\\" + patient_id + pos + ".tsv"
+            if os.path.exists(txt_name):
+                shutil.copy(txt_name, target_dir + "\\")
+            if os.path.exists(wav_name):
+                shutil.copy(wav_name, target_dir + "\\")
+            if os.path.exists(hea_name):
+                shutil.copy(hea_name, target_dir + "\\")
+            if os.path.exists(tsv_name):
+                shutil.copy(tsv_name, target_dir + "\\")
 
 
 def copy_wav_file(src_path, folder_path, patient_id_list, mur, position):
@@ -67,24 +63,23 @@ def copy_wav_file(src_path, folder_path, patient_id_list, mur, position):
     count = 0
     # 1. make dir
     mur_dir = folder_path + "\\" + mur
-    if not os.path.exists(mur_dir):
-        os.makedirs(mur_dir)
+    mkdir(mur_dir)
     # 2. copy file
     for patient_id in patient_id_list:
         # for mur in murmur:
         for pos in position:
             target_dir = folder_path + "\\" + mur + "\\" + patient_id + "\\"
             os.makedirs(target_dir, exist_ok=True)
-            wavname = src_path + "\\" + patient_id + pos + ".wav"
-            tsvname = src_path + "\\" + patient_id + pos + ".tsv"
-            txtname = src_path + "\\" + patient_id + ".txt"
-            if os.path.exists(wavname):
-                shutil.copy(wavname, target_dir + "\\")
+            wav_name = src_path + "\\" + patient_id + pos + ".wav"
+            tsv_name = src_path + "\\" + patient_id + pos + ".tsv"
+            txt_name = src_path + "\\" + patient_id + ".txt"
+            if os.path.exists(wav_name):
+                shutil.copy(wav_name, target_dir + "\\")
                 count += 1
-            if os.path.exists(tsvname):
-                shutil.copy(tsvname, target_dir + "\\")
-            if os.path.exists(txtname):
-                shutil.copy(txtname, target_dir + "\\")
+            if os.path.exists(tsv_name):
+                shutil.copy(tsv_name, target_dir + "\\")
+            if os.path.exists(txt_name):
+                shutil.copy(txt_name, target_dir + "\\")
     print("copy file num: ", count)
 
 
@@ -112,162 +107,132 @@ def index_load(tsvname):
     return head[1:]
 
 
-# preprocessed PCGs were segmented into four heart sound states
 def period_div(
         path,
         mur,
         patient_id_list,
-        positoin,
+        position,
         id_data,
-        Murmur_locations,
-        Systolic_murmur_timing,
-        Diastolic_murmur_timing,
+        murmur_locations,
+        systolic_murmur_timing,
+        diastolic_murmur_timing,
+        is_state=True
 ):
+    """
+    按照时相切割
+    """
     for patient_id in patient_id_list:
         patient_dir_path = path + mur + patient_id + "\\" + patient_id
-        txtpath = patient_dir_path + ".txt"
-        current_patient_data = load_patient_data(txtpath)
-        hunman_feat = get_features_mod(current_patient_data)
-        for pos in positoin:
+        txt_path = patient_dir_path + ".txt"
+        current_patient_data = load_patient_data(txt_path)
+        human_feat = get_features_mod(current_patient_data)
+        for pos in position:
             dir_path = path + mur + patient_id + "\\" + patient_id + pos
             tsv_path = dir_path + ".tsv"
             wav_path = dir_path + ".wav"
             index = id_data.index(patient_id)
             wav_location = pos[1:]  # 听诊区域
-            locations = Murmur_locations[index].split("+")  # 有杂音的区域
+            locations = murmur_locations[index].split("+")  # 有杂音的区域
             # 此听诊区有杂音
             if wav_location in locations:
                 murmur_type = "Present"
-                Systolic_state = Systolic_murmur_timing[index]
-                Diastolic_state = Diastolic_murmur_timing[index]
+                systolic_state = systolic_murmur_timing[index]
+                diastolic_state = diastolic_murmur_timing[index]
                 # 没有 Systolic murmur
-                Systolic_murmur = "Absent" if Systolic_state == "nan" else "Present"
+                systolic_murmur = "Absent" if systolic_state == "nan" else "Present"
                 # 没有 Diastolic murmur
-                Diastolic_murmur = "Absent" if Diastolic_state == "nan" else "Present"
+                diastolic_murmur = "Absent" if diastolic_state == "nan" else "Present"
             # 此听诊区没有杂音
             else:
-                murmur_type = "Absent"
-                Systolic_murmur = "Absent"
-                Diastolic_murmur = "Absent"
-                Systolic_state = "nan"
-                Diastolic_state = "nan"
-            # 如果是present的有杂音区域，或absent区域
-            # if (mur == "Absent\\") or (mur == "Present\\" and (wav_location in locations)):
+                murmur_type, systolic_murmur, diastolic_murmur, systolic_state, diastolic_state = "Absent", "Absent", "Absent", "nan", "nan"
+
             if os.path.exists(tsv_path):
-                state_div2(
-                    tsv_path,
-                    wav_path,
-                    dir_path + "\\",
-                    patient_id + pos,
-                    murmur_type
-                    # Systolic_murmur,
-                    # Diastolic_murmur,
-                    # Systolic_state,
-                    # Diastolic_state,
-                    # hunman_feat
-                )
+                if is_state:
+                    state_div(tsv_path, wav_path, dir_path + "\\", patient_id + pos, systolic_murmur, diastolic_murmur,
+                              systolic_state, diastolic_state, human_feat)
+                else:
+                    duration_div(tsv_path, wav_path, dir_path + "\\", patient_id + pos, murmur_type)
 
 
 def state_div(
-        tsvname,
-        wavname,
+        tsv_name,
+        wav_name,
         state_path,
         index,
-        Systolic_murmur,
-        Diastolic_murmur,
-        Systolic_state,
-        Diastolic_state,
-        hunman_feat
+        systolic_murmur,
+        diastolic_murmur,
+        systolic_state,
+        diastolic_state,
+        human_feat
 ):
-    """切割出s1+收缩和s2+舒张"""
-    index_file = index_load(tsvname)
-    recording, fs = librosa.load(wavname, sr=4000)
+    """
+    按照时长切割
+    """
+    index_file = index_load(tsv_name)
+    recording, fs = librosa.load(wav_name, sr=4000)
     num = 0
-    # start_index1 = 0
-    # end_index1 = 0
-    # start_index2 = 0
-    # end_index2 = 0
-    # count = 0
+
     for i in range(index_file.shape[0] - 3):
-        # if count == 20:
-        #     break
-        if index_file[i][2] == "1" and index_file[i + 2][2] == "3":
+        if index_file[i][2] == "1" and index_file[i + 3][2] == "4":
             start_index1 = float(index_file[i][0]) * fs
             end_index1 = float(index_file[i + 1][1]) * fs
             start_index2 = float(index_file[i + 2][0]) * fs
             end_index2 = float(index_file[i + 3][1]) * fs
             num = num + 1
-
-            #  解决出现_0.wav的问题
-            print(start_index1, end_index1, start_index2, end_index2)
-            print("=============================================")
-            print("wav name: " + wavname)
+            print("==========state_div===========")
             buff1 = recording[int(start_index1): int(end_index1)]  # 字符串索引切割
             buff2 = recording[int(start_index2): int(end_index2)]  # 字符串索引切割
-            print("buff1 len: " + str(len(buff1)),
-                  "buff2 len: " + str(len(buff2)))
-            # if Systolic_murmur == "Present" and Diastolic_murmur == "Absent":
-            #     # 切收缩期
-            #     soundfile.write(
-            #         state_path
-            #         + f"{index}_s1+Systolic_{num}_{Systolic_murmur}_{Systolic_state}_{hunman_feat}.wav",
-            #         buff1,
-            #         fs,
-            #     )
-            # else:
-            # 切收缩期
+            print("buff1 len: " + str(len(buff1)), "buff2 len: " + str(len(buff2)))
             soundfile.write(
                 state_path
-                + f"{index}_s1+Systolic_{num}_{Systolic_murmur}_{Systolic_state}_{hunman_feat}.wav",
+                + f"{index}_s1+Systolic_{num}_{systolic_murmur}_{systolic_state}_{human_feat}.wav",
                 buff1,
-                fs,
+                fs
             )
             # 切舒张期
             soundfile.write(
                 state_path
-                + f"{index}_s2+Diastolic_{num}_{Diastolic_murmur}_{Diastolic_state}_{hunman_feat}.wav",
+                + f"{index}_s2+Diastolic_{num}_{diastolic_murmur}_{diastolic_state}_{human_feat}.wav",
                 buff2,
-                fs,
+                fs
             )
-            # count += 1
 
 
-def state_div2(
-        tsvname,
-        wavname,
+def duration_div(
+        tsv_name,
+        wav_name,
         state_path,
         id_pos,
-        murmur_type
-
+        murmur_type,
+        spilt_len=4
 ):
-    """按照4s切片"""
-    index_file = index_load(tsvname)
-    spilt_len = 4  # 切割长度为spilt_len s
-    recording, fs = librosa.load(wavname, sr=4000)
+    """
+    按照4s切片
+    切割长度为spilt_len s
+    """
+    recording, fs = librosa.load(wav_name, sr=4000)
+    index_file = index_load(tsv_name)
     start = float(index_file[0][0]) * fs
-    start = float(index_file[-1][1]) * fs
-    buff = recording[int(start): int(start)]  # 要切割的数据
-    # 将buff数据切割为3s的数据
-    # 计算音频的总长度（秒）
-    # total_length = len(recording) / fs
+    end = float(index_file[-1][1]) * fs
+    buff = recording[int(start): int(end)]  # 要切割的数据
 
     # 计算每个片段的样本数
     samples_per_segment = spilt_len * fs
-
     # 切割音频数据
     segments = []
-    for start in np.arange(0, len(recording), samples_per_segment):
+    for start in np.arange(0, len(buff), samples_per_segment):
         end = start + samples_per_segment
-        segment = recording[start:end]
+        segment = buff[start:end]
         segments.append(segment)
 
     segments.pop()
     for i, segment in enumerate(segments):
+        print("==========duration_div===========")
         soundfile.write(
             state_path
             + "{}_{}_{}_{}_{}.wav".format(id_pos, str(spilt_len) + "s", i, murmur_type, "none"),
             segment,
-            fs,
+            fs
         )
 
 
@@ -280,7 +245,7 @@ def get_patientid(csv_path):
         return id
 
 
-def fold_devide(data, flod_num=5):
+def fold_divide(data, fold_num=5):
     """五折交叉验证
     将输入列表打乱，然后分成五份
     output: flod5 = {0:[],1:[],2:[],3:[],4:[]}
@@ -290,8 +255,8 @@ def fold_devide(data, flod_num=5):
     # 五折
     flod5 = {}
     point = []
-    for i in range(flod_num):
-        point.append(i * round(len(data) / flod_num))
+    for i in range(fold_num):
+        point.append(i * round(len(data) / fold_num))
     # print(point)
     # 分割序列
     for i in range(len(point)):
