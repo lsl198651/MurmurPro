@@ -2,9 +2,6 @@
 # Create Data: 2023-6
 # Modify Date:2024-10-21
 
-
-import utils_dataset
-
 from util.utils_dataset import *
 
 # ==================================================================== #
@@ -30,7 +27,7 @@ if __name__ == '__main__':
     # TODO 修改此处的root_path
     root_path = r"D:\Shilong\new_murmur\02_dataset\01_s1s2_4k"
     # root_path = r"D:\Shilong\murmur\01_dataset\validset_4k"
-    data_set(root_path, is_by_state=True)
+    # data_set(root_path, is_by_state=True)
     mkdir(root_path)
     # save data to csv file
     pd.DataFrame(Murmur_locations).to_csv(root_path + r"\Murmur_locations.csv", index=False, header=False)

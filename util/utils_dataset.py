@@ -297,7 +297,7 @@ def data_set(root_path, is_by_state):
     mkdir(npy_path_padded)
     mkdir(index_path)
     for k in range(5):
-        mel_list = []
+
         src_fold_root_path = root_path + r"\fold_set_" + str(k)
         # TODO 是否做数据增强
         # data_Auge(src_fold_root_path)
@@ -307,6 +307,7 @@ def data_set(root_path, is_by_state):
                 wav, label, names, index, data_id, feat = get_wav_data(dataset_path, is_by_state, num=0)  # absent
             else:
                 wav, label, names, index, data_id, feat = get_wav_data(dataset_path, is_by_state, data_id)  # absent
+            mel_list = []
             for i in range(len(wav)):
                 mel = get_logmel_feature(wav[i])
                 mel_list.append(mel)

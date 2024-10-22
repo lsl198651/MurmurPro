@@ -48,7 +48,6 @@ def get_features(set_path, train_fold: list, test_fold: list, set_type: str, tra
         #                 'reverse1.2', 'time_stretch0.8', 'time_stretch0.9', 'time_stretch1.1', 'time_stretch1.2']
         test_folders = ['absent', 'present']
         for folder in test_folders:
-
             # test_wav_dic[v][folder] = np.load(npy_path_padded +
             #                                       f"\\{folder}_wav_norm01_fold{v}.npy", allow_pickle=True)
             test_labels_dic[v][folder] = np.load(npy_path_padded +
@@ -57,15 +56,15 @@ def get_features(set_path, train_fold: list, test_fold: list, set_type: str, tra
                                                 f"\\{folder}_index_norm01_fold{v}.npy", allow_pickle=True)
             test_mel_dic[v][folder] = np.load(npy_path_padded +
                                               f"\\{folder}_mel_norm01_fold{v}.npy", allow_pickle=True)
-            # test_ebd_dic[v][folder] = np.load(npy_path_padded +
-            #                                   f"\\{folder}_feat_norm01_fold{v}.npy", allow_pickle=True)
+
     return train_wav_dic, train_labels_dic, train_index_dic, train_mel_dic, test_wav_dic, test_labels_dic, test_index_dic, test_mel_dic
 
 
 def fold5_dataloader(set_path, train_folder, test_folder, data_augmentation, set_name):
     """组合特征并且返回features，label，index"""
-    train_folders = ['absent', 'present', 'reverse0.8', 'reverse0.9', 'reverse1.0', 'reverse1.1', 'reverse1.2',
-                     'time_stretch0.8', 'time_stretch0.9', 'time_stretch1.1', 'time_stretch1.2']
+    # train_folders = ['absent', 'present', 'reverse0.8', 'reverse0.9', 'reverse1.0', 'reverse1.1', 'reverse1.2',
+    #                  'time_stretch0.8', 'time_stretch0.9', 'time_stretch1.1', 'time_stretch1.2']
+    train_folders = ['absent', 'present']
     train_wav_dic, train_labels_dic, train_index_dic, train_mel_dic, test_wav_dic, test_labels_dic, test_index_dic, test_mel_dic = get_features(
         set_path, train_folder, test_folder, set_name, train_folders)
     if data_augmentation:
@@ -264,18 +263,18 @@ def fold5_dataloader(set_path, train_folder, test_folder, data_augmentation, set
         )
 
     else:
-        train_features = np.vstack(
-            (
-                train_wav_dic[train_folder[0]][train_folders[0]],
-                train_wav_dic[train_folder[0]][train_folders[1]],
-                train_wav_dic[train_folder[1]][train_folders[0]],
-                train_wav_dic[train_folder[1]][train_folders[1]],
-                train_wav_dic[train_folder[2]][train_folders[0]],
-                train_wav_dic[train_folder[2]][train_folders[1]],
-                train_wav_dic[train_folder[3]][train_folders[0]],
-                train_wav_dic[train_folder[3]][train_folders[1]]
-            )
-        )
+        # train_features = np.vstack(
+        #     (
+        #         train_wav_dic[train_folder[0]][train_folders[0]],
+        #         train_wav_dic[train_folder[0]][train_folders[1]],
+        #         train_wav_dic[train_folder[1]][train_folders[0]],
+        #         train_wav_dic[train_folder[1]][train_folders[1]],
+        #         train_wav_dic[train_folder[2]][train_folders[0]],
+        #         train_wav_dic[train_folder[2]][train_folders[1]],
+        #         train_wav_dic[train_folder[3]][train_folders[0]],
+        #         train_wav_dic[train_folder[3]][train_folders[1]]
+        #     )
+        # )
         train_label = np.hstack(
             (
                 train_labels_dic[train_folder[0]][train_folders[0]],
@@ -301,7 +300,7 @@ def fold5_dataloader(set_path, train_folder, test_folder, data_augmentation, set
                 train_index_dic[train_folder[3]][train_folders[1]]
             )
         )
-        train_mel = np.hstack(
+        train_mel = np.concatenate(
             (
                 train_mel_dic[train_folder[0]][train_folders[0]],
                 train_mel_dic[train_folder[0]][train_folders[1]],
@@ -312,15 +311,15 @@ def fold5_dataloader(set_path, train_folder, test_folder, data_augmentation, set
                 train_mel_dic[train_folder[3]][train_folders[0]],
                 train_mel_dic[train_folder[3]][train_folders[1]]
 
-            )
+            ),axis=0
         )
 
-    test_features = np.vstack(
-        (
-            test_wav_dic[test_folder[0]]['absent'],
-            test_wav_dic[test_folder[0]]['present'],
-        )
-    )
+    # test_features = np.vstack(
+    #     (
+    #         test_wav_dic[test_folder[0]]['absent'],
+    #         test_wav_dic[test_folder[0]]['present'],
+    #     )
+    # )
     test_label = np.hstack(
         (
             test_labels_dic[test_folder[0]]['absent'],
@@ -333,11 +332,11 @@ def fold5_dataloader(set_path, train_folder, test_folder, data_augmentation, set
             test_index_dic[test_folder[0]]['present'],
         )
     )
-    test_mel = np.hstack(
+    test_mel = np.concatenate(
         (
             test_mel_dic[test_folder[0]]['absent'],
-            test_mel_dic[test_folder[0]]['present'],
-        )
+            test_mel_dic[test_folder[0]]['present']
+        ),axis=0
     )
 
-    return train_features, train_label, train_index, test_features, test_label, test_index  # , test_ebd
+    return train_mel, train_label, train_index, test_mel, test_label, test_index  # , test_ebd

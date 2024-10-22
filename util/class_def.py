@@ -50,7 +50,7 @@ class DatasetClass(Dataset):
     """
 
     # Initialize your data, download, etc.
-    def __init__(self, wavlabel, wavdata, wavidx):
+    def __init__(self, features, wav_label, wav_index):
         # 直接传递data和label
         # self.len = wavlen
         # embeds = []
@@ -58,19 +58,19 @@ class DatasetClass(Dataset):
         #     embed = int(embed.split('.')[0])
         #     embeds.append(embed)
         # self.wavebd = embeds
-        self.data = torch.from_numpy(wavdata)
-        self.label = torch.from_numpy(wavlabel)
-        self.id = torch.from_numpy(wavidx)
+        self.data = torch.from_numpy(features)
+        self.label = torch.from_numpy(wav_label)
+        self.idx = torch.from_numpy(wav_index)
 
     def __getitem__(self, index):
         # 根据索引返回数据和对应的标签
-        dataitem = self.data[index]
-        labelitem = self.label[index]
-        iditem = self.id[index]
+        data_item = self.data[index]
+        label_item = self.label[index]
+        idx_item = self.idx[index]
         # embeding = self.wavebd[index]
         # embeding = 1  # fake
-        # wide_feat = hand_fea((dataitem, 4000))
-        return dataitem.float(), labelitem, iditem  # , wide_feat, embeding
+        # wide_feat = hand_fea((data_item, 4000))
+        return data_item.float(), label_item, idx_item  # , wide_feat, embeding
 
     def __len__(self):
         # 返回文件数据的数目
