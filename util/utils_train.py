@@ -41,7 +41,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
     Returns:
         _type_: _description_
     """
-    npy_path_padded = r"D:\Shilong\murmur\01_dataset" + set_type + r"\npyFile_padded\npy_files01"
+    npy_path_padded = r"D:\Shilong\new_murmur\02_dataset" + set_type + r"\npyFile_padded\npy_files01_norm"
     # if len(test_fold) == 1:
     for k in test_fold:
         absent_test_index = np.load(npy_path_padded + f"\\absent_index_norm01_fold{k}.npy", allow_pickle=True)
@@ -175,8 +175,8 @@ def get_segment_target_list(test_fold, set_type):
     """
     # if len(test_fold) == 1:
     for k in test_fold:
-        absent_test_id_path = fr"D:\Shilong\murmur\01_dataset" + set_type + fr"\absent_fold_{k}.csv"
-        present_test_id_path = fr"D:\Shilong\murmur\01_dataset" + set_type + fr"\present_fold_{k}.csv"
+        absent_test_id_path = fr"D:\Shilong\new_murmur\02_dataset" + set_type + fr"\absent_fold_{k}.csv"
+        present_test_id_path = fr"D:\Shilong\new_murmur\02_dataset" + set_type + fr"\present_fold_{k}.csv"
         absent_test_id = csv_reader_cl(absent_test_id_path, 0)
         present_test_id = csv_reader_cl(present_test_id_path, 0)
     # else:

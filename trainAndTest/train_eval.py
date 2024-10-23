@@ -10,6 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, \
     binary_accuracy, binary_precision, binary_recall
 from transformers import optimization
+
 from util.class_def import FocalLoss
 from util.utils_train import segment_classifier
 
@@ -128,25 +129,25 @@ def train_test(model,
         test_f1 = binary_f1_score(test_input, test_target)
         test_cm = binary_confusion_matrix(test_input, test_target)
         # --------------------------------------------------------
-        pd.DataFrame(error_index).to_csv(error_index_path + "/epoch" + str(epochs + 1) + ".csv",
-                                         index=False,
-                                         header=False)
-        location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(
-            result_list_present,
-            args.test_fold,
-            args.setType)
-        test_patient_input, test_patient_target = torch.as_tensor(patient_output), torch.as_tensor(patient_target)
-        test_patient_auprc = binary_auprc(test_patient_input, test_patient_target)
-        test_patient_auroc = binary_auroc(test_patient_input, test_patient_target)
-        test_patient_acc = binary_accuracy(test_patient_input, test_patient_target)
-        test_patient_f1 = binary_f1_score(test_patient_input, test_patient_target)
-        test_patient_cm = binary_confusion_matrix(test_patient_input, test_patient_target)
-        # 这两个算出来的都是present的
-        test_PPV = binary_precision(test_patient_input, test_patient_target)
-        test_TPR = binary_recall(test_patient_input, test_patient_target)
+        # pd.DataFrame(error_index).to_csv(error_index_path + "/epoch" + str(epochs + 1) + ".csv",
+        #                                  index=False,
+        #                                  header=False)
+        # location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(
+        #     result_list_present,
+        #     args.test_fold,
+        #     args.set_name)
+        # test_patient_input, test_patient_target = torch.as_tensor(patient_output), torch.as_tensor(patient_target)
+        # test_patient_auprc = binary_auprc(test_patient_input, test_patient_target)
+        # test_patient_auroc = binary_auroc(test_patient_input, test_patient_target)
+        # test_patient_acc = binary_accuracy(test_patient_input, test_patient_target)
+        # test_patient_f1 = binary_f1_score(test_patient_input, test_patient_target)
+        # test_patient_cm = binary_confusion_matrix(test_patient_input, test_patient_target)
+        # # 这两个算出来的都是present的
+        # test_ppv = binary_precision(test_patient_input, test_patient_target)
+        # test_tpr = binary_recall(test_patient_input, test_patient_target)
         "保存最好的模型"
-        if test_patient_acc > best_acc :
-            best_acc = test_patient_acc
+        # if test_patient_acc > best_acc:
+        #     best_acc = test_patient_acc
             # if  args.saveModel is True:
         #     save_checkpoint({"epoch": epochs + 1,
         #                      "model": model.state_dict(),
@@ -155,9 +156,9 @@ def train_test(model,
         #                     args.test_fold[0],
         #                     "{}".format(args.model_folder))
         # ========================/ 保存error_index.csv  /========================== #
-        pd.DataFrame(patient_error_id).to_csv(patient_error_index_path + "/epoch" + str(epochs + 1) + ".csv",
-                                              index=False,
-                                              header=False)
+        # pd.DataFrame(patient_error_id).to_csv(patient_error_index_path + "/epoch" + str(epochs + 1) + ".csv",
+        #                                       index=False,
+        #                                       header=False)
         for group in optimizer.param_groups:
             lr_now = group["lr"]
         lr.append(lr_now)
@@ -175,7 +176,7 @@ def train_test(model,
             tb_writer.add_scalar("train_loss", train_loss, epochs)
             tb_writer.add_scalar("test_loss", test_loss, epochs)
             tb_writer.add_scalar("learning_rate", lr_now, epochs)
-            tb_writer.add_scalar("patient_acc", test_patient_acc, epochs)
+            # tb_writer.add_scalar("patient_acc", test_patient_acc, epochs)
         # ========================/ 日志 /========================== #
         logging.info(f"============================")
         logging.info(f"epoch: {epochs + 1}/{args.num_epochs}")
@@ -189,13 +190,13 @@ def train_test(model,
         logging.info(f"segments_auprc:{test_auprc:.3f}")
         logging.info(f"segments_f1_:{test_f1:.3f}")
         logging.info(f"----------------------------")
-        logging.info(f"patient_acc:{test_patient_acc:.2%}")
-        logging.info(f"patient_cm:{test_patient_cm.numpy()}")
-        logging.info(f"patient_TPR:{test_TPR:.3f}")
-        logging.info(f"patient_PPV:{test_PPV:.3f}")
-        logging.info(f"patient_f1_:{test_patient_f1:.3f}")
-        logging.info(f"patient_auroc:{test_patient_auroc:.3f}")
-        logging.info(f"patient_auprc:{test_patient_auprc:.3f}")
+        # logging.info(f"patient_acc:{test_patient_acc:.2%}")
+        # logging.info(f"patient_cm:{test_patient_cm.numpy()}")
+        # logging.info(f"patient_TPR:{test_tpr:.3f}")
+        # logging.info(f"patient_PPV:{test_ppv:.3f}")
+        # logging.info(f"patient_f1_:{test_patient_f1:.3f}")
+        # logging.info(f"patient_auroc:{test_patient_auroc:.3f}")
+        # logging.info(f"patient_auprc:{test_patient_auprc:.3f}")
         logging.info(f"best_acc:{best_acc:.2%}")
         # ========================/ 混淆矩阵 /========================== #
         """draw_confusion_matrix(

@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torchaudio.compliance.kaldi as ta_kaldi
 from torch import Tensor
+from torch import torch_version as T
 
 
 def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
@@ -185,6 +186,22 @@ class Bottleneck(nn.Module):
         return out
 
 
+def preprocess(
+        source: torch.Tensor
+) -> torch.Tensor:
+    fbanks = []
+    mel = T.MelSpectrogram(sample_rate=4000, n_fft=512, win_length=100, f_min=10, f_max=1000, n_mels=128)
+    for waveform in source:
+        waveform = waveform.unsqueeze(0)
+        fbank = ta_kaldi.fbank(waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
+        fbank_mean = fbank.mean()
+        fbank_std = fbank.std()
+        fbank = (fbank - fbank_mean) / fbank_std
+        fbanks.append(fbank)
+    fbank = torch.stack(fbanks, dim=0)
+    return fbank
+
+
 class My_ResNet(nn.Module):
     def __init__(
             self,
@@ -237,16 +254,6 @@ class My_ResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-        # Zero-initialize the last BN in each residual branch,
-        # so that the residual branch starts with zeros, and each residual block behaves like an identity.
-        # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
-        # if zero_init_residual:
-        #     for m in self.modules():
-        #         if isinstance(m, Bottleneck) and m.bn3.weight is not None:
-        #             nn.init.constant_(m.bn3.weight, 0)  # type: ignore[arg-type]
-        #         elif isinstance(m, BasicBlock) and m.bn2.weight is not None:
-        #             nn.init.constant_(m.bn2.weight, 0)  # type: ignore[arg-type]
-
     def _make_layer(
             self,
             block: Type[Union[BasicBlock, Bottleneck]],
@@ -256,50 +263,32 @@ class My_ResNet(nn.Module):
             dilate: bool = False
     ) -> nn.Sequential:
         norm_layer = self._norm_layer
-        downsample = None
+        down_sample = None
         previous_dilation = self.dilation
         if dilate:
             self.dilation *= stride
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(conv1x1(self.inplanes, planes * block.expansion, stride),
-                                       norm_layer(planes * block.expansion))
+            down_sample = nn.Sequential(conv1x1(self.inplanes, planes * block.expansion, stride),
+                                        norm_layer(planes * block.expansion))
 
-        layers = []
-        layers.append(
-            block(self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation,
-                  norm_layer))
+        layers = [block(self.inplanes, planes, stride, down_sample, self.groups, self.base_width, previous_dilation,
+                        norm_layer)]
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
-            layers.append(
-                block(self.inplanes, planes, groups=self.groups, base_width=self.base_width, dilation=self.dilation,
-                      norm_layer=norm_layer))
+            layers.append(block(self.inplanes,
+                                planes,
+                                groups=self.groups,
+                                base_width=self.base_width,
+                                dilation=self.dilation,
+                                norm_layer=norm_layer)
+                          )
 
         return nn.Sequential(*layers)
 
-    def preprocess(
-            self,
-            source: torch.Tensor
-    ) -> torch.Tensor:
-        fbanks = []
-        # mel = T.MelSpectrogram(sample_rate=4000, n_fft=512,
-        #                        win_length=100, f_min=10, f_max=1000, n_mels=128)
-        for waveform in source:
-            waveform = waveform.unsqueeze(0)
-            # mel = mel.to('cuda')
-            # melspec = mel(waveform)
-            # logfbank = T.AmplitudeToDB()(melspec)
-            fbank = ta_kaldi.fbank(waveform, num_mel_bins=128, sample_frequency=4000, frame_length=25, frame_shift=10)
-            fbank_mean = fbank.mean()
-            fbank_std = fbank.std()
-            fbank = (fbank - fbank_mean) / fbank_std
-            fbanks.append(fbank)
-        fbank = torch.stack(fbanks, dim=0)
-        return fbank
-
     def forward(self, x: Tensor) -> Tensor:
         # See note [TorchScript super()]
-        x = self.preprocess(x)
+        # x = preprocess(x)
         x = x.unsqueeze(1)
         x = self.conv1(x)
         x = self.bn1(x)
