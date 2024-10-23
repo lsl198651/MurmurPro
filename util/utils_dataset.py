@@ -318,7 +318,8 @@ def data_set(root_path, is_by_state):
             np.save(npy_path_padded + f"\\{folder}_name_norm01_fold{k}.npy", names)  # 文件名
             np.save(npy_path_padded + f"\\{folder}_feat_norm01_fold{k}.npy", feat)  # 人口特征
             absent_train_dic = zip(index, names, feat)
-            pd.DataFrame(absent_train_dic).to_csv(index_path + f"\\fold{k}_{folder}_disc.csv", index=False,header=False)
+            pd.DataFrame(absent_train_dic).to_csv(index_path + f"\\fold{k}_{folder}_disc.csv", index=False,
+                                                  header=False)
     print("data set is done!")
 
 
@@ -395,33 +396,34 @@ def extract_id_and_auscultation_area(filename):
         return None, None
 
 
-def get_id_position_org(file_path,output_file_path):
+def get_id_position_org(file_path, output_file_path, file_name):
     # Load the CSV file without headers
-    data = pd.read_csv(file_path, header=None)
+    csv_name = file_path + "\\" + file_name
+    data = pd.read_csv(csv_name, header=None)
 
     # Apply the adjusted function to extract ID and auscultation area
     data[['id', 'auscultation_area']] = data.iloc[:, 1].apply(
         lambda x: pd.Series(extract_id_and_auscultation_area(x)))
 
     # Group by 'ID' and 'Auscultation_Area' and aggregate the indices from the first column
-    grouped = data.groupby(['ID', 'auscultation_area']).agg({0: list}).reset_index()
+    grouped = data.groupby(['id', 'auscultation_area']).agg({0: list}).reset_index()
 
     # Rename columns for clarity
     grouped.columns = ['id', 'auscultation_area', 'indices']
 
     # Save the grouped data to a new CSV file with headers
-    output_file_name =output_file_path+ '/organized_data_with_headers.csv'
-    grouped.to_csv(output_file_name, index=False)
+    output_file = output_file_path + r'\organized_data_'+file_name
+    grouped.to_csv(output_file, index=False)
 
 
 # 将CSV数据转换为更结构化的字典格式
 # 格式为：{ID: {Auscultation_Area: [Indices]}}
 # 定义一个函数来读取CSV文件并将其转换为所需的字典格式
-def csv_to_dict(csv_filepath):
+def csv_to_dict(root,csv_filepath):
     structured_dict = {}
-
+    csv_path= root + "\\" + csv_filepath
     # 打开CSV文件并读取
-    with open(csv_filepath, 'r', encoding='utf-8') as csvfile:
+    with open(csv_path, 'r', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             id_key = row['id']
@@ -439,5 +441,3 @@ def csv_to_dict(csv_filepath):
             structured_dict[id_key][auscultation_area] = indices_list
 
     return structured_dict
-
-
