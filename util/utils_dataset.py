@@ -419,11 +419,11 @@ def get_id_position_org(file_path, output_file_path, file_name):
 # 将CSV数据转换为更结构化的字典格式
 # 格式为：{ID: {Auscultation_Area: [Indices]}}
 # 定义一个函数来读取CSV文件并将其转换为所需的字典格式
-def csv_to_dict(root,csv_filepath):
+def csv_to_dict(csv_filepath):
     structured_dict = {}
-    csv_path= root + "\\" + csv_filepath
+
     # 打开CSV文件并读取
-    with open(csv_path, 'r', encoding='utf-8') as csvfile:
+    with open(csv_filepath, 'r', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             id_key = row['id']

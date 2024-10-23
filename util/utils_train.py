@@ -7,7 +7,7 @@ from datetime import datetime
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-from util.utils_dataset import csv_reader_row, csv_reader_cl
+from util.utils_dataset import csv_reader_row, csv_reader_cl, csv_to_dict
 
 
 def logger_init(
@@ -29,6 +29,24 @@ def logger_init(
         datefmt="%m%d %H%M",
         handlers=[logging.FileHandler(log_path), logging.StreamHandler(sys.stdout)])
     logging.disable(logging.DEBUG)
+
+
+def segment_classifier(present_result_list: list, test_fold: list):
+    root_path = r"D:\Shilong\new_murmur\02_dataset\01_s1s2_4k\npyFile_padded\organized_data"
+    for k in test_fold:
+        present_result_set=set(present_result_list)
+        file_absent = root_path + f"organized_data_fold{k}_absent_disc.csv"
+        print('processing file:', file_absent)
+        absent_test_dic = csv_to_dict(file_absent)
+        file_present = root_path + f"organized_data_fold{k}_present_disc.csv"
+        present_test_dic = csv_to_dict(file_present)
+        test_dic = {**absent_test_dic, **present_test_dic}
+        res_idc = {}
+        for test_dic_key, _ in test_dic.items():
+            print(test_dic_key)
+            res_idc[test_dic_key] = {}
+            for key, index_list in test_dic[test_dic_key].items():
+                res_idc[test_dic_key][key] = len([element for element in index_list if element in present_result_set])//len(index_list)
 
 
 def segment_classifier(result_list_1: list, test_fold: list, set_type: str):
