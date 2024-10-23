@@ -304,7 +304,7 @@ def data_set(root_path, is_by_state):
         for folder in os.listdir(src_fold_root_path):
             dataset_path = os.path.join(src_fold_root_path, folder)
             if k == 0 and folder == "absent":
-                wav, label, names, index, data_id, feat = get_wav_data(dataset_path, is_by_state, num=0)  # absent
+                wav, label, names, index, data_id, feat = get_wav_data(dataset_path, is_by_state, data_id=0)  # absent
             else:
                 wav, label, names, index, data_id, feat = get_wav_data(dataset_path, is_by_state, data_id)  # absent
             mel_list = []
@@ -318,17 +318,16 @@ def data_set(root_path, is_by_state):
             np.save(npy_path_padded + f"\\{folder}_name_norm01_fold{k}.npy", names)  # 文件名
             np.save(npy_path_padded + f"\\{folder}_feat_norm01_fold{k}.npy", feat)  # 人口特征
             absent_train_dic = zip(index, names, feat)
-            pd.DataFrame(absent_train_dic).to_csv(index_path + f"\\fold{k}_{folder}_disc.csv", index=False,
-                                                  header=False)
+            pd.DataFrame(absent_train_dic).to_csv(index_path + f"\\fold{k}_{folder}_disc.csv", index=False,header=False)
     print("data set is done!")
 
 
-def get_wav_data(dir_path, is_by_state, num=0):
+def get_wav_data(dir_path, is_by_state, data_id=0):
     """返回数据文件"""
     wav = []
     label = []
-    file_names = []
-    wav_nums = []
+    names = []
+    index = []
     feat = []
     # 设置采样率为4k，时间长度为4
     fs = 4000
@@ -342,9 +341,9 @@ def get_wav_data(dir_path, is_by_state, num=0):
             wav_path = os.path.join(root, subfile)
             if os.path.exists(wav_path):
                 # 序号
-                num = num + 1
-                file_names.append(subfile)
-                wav_nums.append(num)
+                data_id = data_id + 1
+                names.append(subfile)
+                index.append(data_id)
                 # 数据读取
                 print("reading: " + subfile)
                 y, sr = librosa.load(wav_path, sr=4000)
@@ -361,7 +360,7 @@ def get_wav_data(dir_path, is_by_state, num=0):
                 elif y_4k_norm.shape[0] > data_length:
                     # y_4k_norm = y_4k_norm[-data_length:]
                     y_4k_norm = y_4k_norm[:data_length]
-                print("num is " + str(num), "y_4k size: " + str(y_4k_norm.size))
+                print("index is " + str(data_id), "y_4k size: " + str(y_4k_norm.size))
 
                 wav.append(y_4k_norm)
                 file_name = subfile.split("_")
@@ -372,7 +371,7 @@ def get_wav_data(dir_path, is_by_state, num=0):
                     label.append(1)  # 说明该听诊区有杂音
                 feat.append(file_name[-1])
 
-    return wav, label, file_names, wav_nums, num, feat
+    return wav, label, names, index, data_id, feat
 
 
 def wav_normalize(data):
@@ -383,3 +382,62 @@ def wav_normalize(data):
     return data
     # recording -= recording.mean()
     # recording /= recording.abs().max()
+
+
+def extract_id_and_auscultation_area(filename):
+    # Split by non-digit characters to extract the ID and auscultation area
+    parts = filename.split('_')
+    if len(parts) > 1:
+        id_part = ''.join(filter(str.isdigit, parts[0]))  # Extract digits from the first part
+        auscultation_area_part = parts[1].split('+')[0]  # Extract the part before '+' sign
+        return int(id_part) if id_part.isdigit() else None, auscultation_area_part
+    else:
+        return None, None
+
+
+def get_id_position_org(file_path,output_file_path):
+    # Load the CSV file without headers
+    data = pd.read_csv(file_path, header=None)
+
+    # Apply the adjusted function to extract ID and auscultation area
+    data[['id', 'auscultation_area']] = data.iloc[:, 1].apply(
+        lambda x: pd.Series(extract_id_and_auscultation_area(x)))
+
+    # Group by 'ID' and 'Auscultation_Area' and aggregate the indices from the first column
+    grouped = data.groupby(['ID', 'auscultation_area']).agg({0: list}).reset_index()
+
+    # Rename columns for clarity
+    grouped.columns = ['id', 'auscultation_area', 'indices']
+
+    # Save the grouped data to a new CSV file with headers
+    output_file_name =output_file_path+ '/organized_data_with_headers.csv'
+    grouped.to_csv(output_file_name, index=False)
+
+
+# 将CSV数据转换为更结构化的字典格式
+# 格式为：{ID: {Auscultation_Area: [Indices]}}
+# 定义一个函数来读取CSV文件并将其转换为所需的字典格式
+def csv_to_dict(csv_filepath):
+    structured_dict = {}
+
+    # 打开CSV文件并读取
+    with open(csv_filepath, 'r', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            id_key = row['id']
+            auscultation_area = row["auscultation_area"]
+            indices_str = row['indices']
+
+            # 将字符串格式的索引列表转换为实际的列表
+            indices_list = [int(i.strip()) for i in indices_str.strip('[]').split(', ')]
+
+            # 如果ID不在结构化字典中，则添加它
+            if id_key not in structured_dict:
+                structured_dict[id_key] = {}
+
+            # 将听诊区和对应的索引列表添加到结构化字典中
+            structured_dict[id_key][auscultation_area] = indices_list
+
+    return structured_dict
+
+

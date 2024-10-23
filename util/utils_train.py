@@ -9,14 +9,13 @@ from sklearn.metrics import confusion_matrix
 
 from util.utils_dataset import csv_reader_row, csv_reader_cl
 
-"""
-   初始化logging
-"""
-
 
 def logger_init(
         log_level=logging.DEBUG,
         log_dir=r"./log"):
+    """
+       初始化logging
+    """
     # 指定路径
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
@@ -32,7 +31,7 @@ def logger_init(
     logging.disable(logging.DEBUG)
 
 
-def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
+def segment_classifier(result_list_1: list, test_fold: list, set_type: str):
     """
     本fn计算了针对每个location和patient的acc和cm
     Args:
@@ -48,7 +47,7 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
         present_test_index = np.load(npy_path_padded + f"\\present_index_norm01_fold{k}.npy", allow_pickle=True)
         absent_test_names = np.load(npy_path_padded + f"\\absent_name_norm01_fold{k}.npy", allow_pickle=True)
         present_test_names = np.load(npy_path_padded + f"\\present_name_norm01_fold{k}.npy", allow_pickle=True)
-    # todo 可以测一下这个字典names,index组合对不对"""
+    # todo 可以测一下这个字典names,index组合对不对
     absent_test_dic = dict(zip(absent_test_names, absent_test_index))
     present_test_dic = dict(zip(present_test_names, present_test_index))
     # 所有测试数据的字典
@@ -59,11 +58,11 @@ def segment_classifier(result_list_1=[], test_fold=[], set_type=None):
     for file_name, data_index in test_dic.items():
         id_pos = file_name.split('_')[0] + '_' + file_name.split('_')[1]
         # 如果id_pos不在字典中，就创建一个新的键值对
-        if not id_pos in id_idx_dic.keys():
-            id_idx_dic[id_pos] = [data_index]
-        # 如果id_pos在字典中，就把value添加到对应的键值对的值中
-        else:
+        if id_pos in id_idx_dic.keys():
             id_idx_dic[id_pos].append(data_index)
+            # 如果id_pos在字典中，就把value添加到对应的键值对的值中
+        else:
+            id_idx_dic[id_pos] = [data_index]
     # id_idx_dic格式：12345_AV: [001,002,003,004,005]
     # 创建一个空字典，用来存储分类结果,formate: id_pos: result
     result_dic = {}

@@ -1,16 +1,15 @@
 import logging
 import os
-from datetime import datetime
-
 import pandas as pd
 import torch
 import torch.nn as nn
+
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, \
     binary_accuracy, binary_precision, binary_recall
 from transformers import optimization
-
+from datetime import datetime
 from util.class_def import FocalLoss
 from util.utils_train import segment_classifier
 
@@ -132,10 +131,10 @@ def train_test(model,
         # pd.DataFrame(error_index).to_csv(error_index_path + "/epoch" + str(epochs + 1) + ".csv",
         #                                  index=False,
         #                                  header=False)
-        # location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(
-        #     result_list_present,
-        #     args.test_fold,
-        #     args.set_name)
+        location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(
+            result_list_present,
+            args.test_fold,
+            args.set_name)
         # test_patient_input, test_patient_target = torch.as_tensor(patient_output), torch.as_tensor(patient_target)
         # test_patient_auprc = binary_auprc(test_patient_input, test_patient_target)
         # test_patient_auroc = binary_auroc(test_patient_input, test_patient_target)
@@ -156,13 +155,13 @@ def train_test(model,
         #                     args.test_fold[0],
         #                     "{}".format(args.model_folder))
         # ========================/ 保存error_index.csv  /========================== #
-        # pd.DataFrame(patient_error_id).to_csv(patient_error_index_path + "/epoch" + str(epochs + 1) + ".csv",
-        #                                       index=False,
-        #                                       header=False)
+        pd.DataFrame(patient_error_id).to_csv(patient_error_index_path + "/epoch" + str(epochs + 1) + ".csv",
+                                              index=False,
+                                              header=False)
         for group in optimizer.param_groups:
             lr_now = group["lr"]
         lr.append(lr_now)
-        "更新权值"
+        # "更新权值"
         test_loss /= len(pred)
         train_loss /= train_len
         max_train_acc.append(train_acc)
