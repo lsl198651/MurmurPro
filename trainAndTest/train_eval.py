@@ -11,7 +11,7 @@ from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_s
 from transformers import optimization
 from datetime import datetime
 from util.class_def import FocalLoss
-from util.utils_train import segment_classifier
+from util.utils_train import segment_classifier, new_segment_classifier
 
 
 def train_test(model,
@@ -19,7 +19,7 @@ def train_test(model,
                val_loader,
                optimizer=None,
                args=None):
-    global lr_now
+    global lr_now, scheduler
     # ========================/ 声明 /========================== #
     error_index_path = r"./error_index/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
     patient_error_index_path = r"./patient_error_index/" + str(datetime.now().strftime("%Y-%m%d %H%M"))
@@ -110,8 +110,8 @@ def train_test(model,
                 test_loss += loss_v.item()
                 pred_v = pred_v.squeeze(1)
                 correct_v += pred_v.eq(label_v).sum().item()
-                idx_v = index_v[torch.nonzero(torch.eq(pred_v.ne(label_v), True))]
-                result_list_present.extend(index_v[torch.nonzero(torch.eq(pred_v.eq(1), True))].cpu().tolist())
+                idx_v = index_v[pred_v.ne(label_v)]
+                result_list_present.extend(index_v[pred_v.eq(1)].cpu().tolist())
                 try:
                     error_index.extend(idx_v.cpu().tolist())
                 except TypeError:
@@ -131,10 +131,10 @@ def train_test(model,
         # pd.DataFrame(error_index).to_csv(error_index_path + "/epoch" + str(epochs + 1) + ".csv",
         #                                  index=False,
         #                                  header=False)
-        location_acc, location_cm, patient_output, patient_target, patient_error_id = segment_classifier(
+        location_acc, location_cm, patient_output, patient_target, patient_error_id = new_segment_classifier(
             result_list_present,
-            args.test_fold,
-            args.set_name)
+            args.test_fold)
+            # args.set_name)
         # test_patient_input, test_patient_target = torch.as_tensor(patient_output), torch.as_tensor(patient_target)
         # test_patient_auprc = binary_auprc(test_patient_input, test_patient_target)
         # test_patient_auroc = binary_auroc(test_patient_input, test_patient_target)
@@ -155,9 +155,9 @@ def train_test(model,
         #                     args.test_fold[0],
         #                     "{}".format(args.model_folder))
         # ========================/ 保存error_index.csv  /========================== #
-        pd.DataFrame(patient_error_id).to_csv(patient_error_index_path + "/epoch" + str(epochs + 1) + ".csv",
-                                              index=False,
-                                              header=False)
+        # pd.DataFrame(patient_error_id).to_csv(patient_error_index_path + "/epoch" + str(epochs + 1) + ".csv",
+        #                                       index=False,
+        #                                       header=False)
         for group in optimizer.param_groups:
             lr_now = group["lr"]
         lr.append(lr_now)

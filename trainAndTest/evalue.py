@@ -58,9 +58,11 @@ def train_test(model,
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, [40, 80], gamma=0.1)
     # ==========loss function================
     if args.loss_type == "CE":
-        normedWeight = [1, 5]
-        normedWeights = torch.FloatTensor(normedWeight).to(device)
         loss_fn = nn.CrossEntropyLoss()  # 内部会自动加上Softmax层,weight=normedWeights
+    elif args.loss_type == "CE_weighted":
+        normed_weight = [1, 5]
+        normed_weights = torch.FloatTensor(normed_weight).to(device)
+        loss_fn = nn.CrossEntropyLoss(weight=normed_weights)  # 内部会自动加上Softmax层,
     elif args.loss_type == "FocalLoss":
         loss_fn = FocalLoss()
     # ============ training ================

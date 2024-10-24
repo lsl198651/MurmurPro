@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics import confusion_matrix
 
 from util.utils_dataset import csv_reader_row, csv_reader_cl, csv_to_dict
@@ -31,22 +32,74 @@ def logger_init(
     logging.disable(logging.DEBUG)
 
 
-def segment_classifier(present_result_list: list, test_fold: list):
+def new_segment_classifier(present_result_list: list, test_fold: list):
+    global present_id
     root_path = r"D:\Shilong\new_murmur\02_dataset\01_s1s2_4k\npyFile_padded\organized_data"
+    all_result_dic = {}
     for k in test_fold:
-        present_result_set=set(present_result_list)
-        file_absent = root_path + f"organized_data_fold{k}_absent_disc.csv"
+        present_result_set = set(present_result_list)
+        file_absent = root_path + rf"\organized_data_fold{k}_absent_disc.csv"
         print('processing file:', file_absent)
         absent_test_dic = csv_to_dict(file_absent)
-        file_present = root_path + f"organized_data_fold{k}_present_disc.csv"
+        file_present = root_path + rf"\organized_data_fold{k}_present_disc.csv"
         present_test_dic = csv_to_dict(file_present)
-        test_dic = {**absent_test_dic, **present_test_dic}
-        res_idc = {}
+        test_dic = absent_test_dic
+        for test_dic_key, _ in present_test_dic.items():
+            if test_dic_key in test_dic.keys():
+                for sub_key, _ in present_test_dic[test_dic_key].items():
+                    if sub_key in test_dic[test_dic_key].keys():
+                        test_dic[test_dic_key][sub_key].extend(present_test_dic[test_dic_key][sub_key])
+                    else:
+                        test_dic[test_dic_key][sub_key] = present_test_dic[test_dic_key][sub_key]
+            else:
+                test_dic[test_dic_key] = present_test_dic[test_dic_key]
+
+        present_csv_name = rf"D:\Shilong\new_murmur\02_dataset\01_s1s2_4k\present_fold_{k}.csv"
+        present_id = pd.read_csv(present_csv_name, header=None)
+
+        # test_dic = {**absent_test_dic, **present_test_dic}
         for test_dic_key, _ in test_dic.items():
-            print(test_dic_key)
-            res_idc[test_dic_key] = {}
+            # print(test_dic_key)
+            all_result_dic[test_dic_key] = {}
             for key, index_list in test_dic[test_dic_key].items():
-                res_idc[test_dic_key][key] = len([element for element in index_list if element in present_result_set])//len(index_list)
+                all_result_dic[test_dic_key][key] = len(
+                    [element for element in index_list if element in present_result_set]) // len(index_list)
+
+    for key, pos_res in all_result_dic.items():
+        patient_res = 0
+        for _, res in pos_res.items():
+            if res:
+                patient_res = 1
+                break
+        all_result_dic[key]['result'] = patient_res
+        if key in present_id:
+            all_result_dic[key]['target'] = 1
+        else:
+            all_result_dic[key]['target'] = 0
+    result=[]
+    target=[]
+    for key, value in all_result_dic.items():
+        result.append(value['result'])
+        target.append(value['target'])
+
+
+    print('done')
+
+    return result,target
+
+
+def get_patient_res(res_idc: dict):
+    """得到片段级和患者级准确率"""
+    patient_res = {}
+    for key, value in res_idc.items():
+        patient_id = key.split('_')[0]
+        if patient_id in patient_res.keys():
+            patient_res[patient_id].append(value)
+        else:
+            patient_res[patient_id] = [value]
+    for key, value in patient_res.items():
+        patient_res[key] = np.mean(value)
+    return patient_res
 
 
 def segment_classifier(result_list_1: list, test_fold: list, set_type: str):
@@ -58,6 +111,7 @@ def segment_classifier(result_list_1: list, test_fold: list, set_type: str):
     Returns:
         _type_: _description_
     """
+    global absent_test_index, present_test_index, present_test_names, absent_test_names
     npy_path_padded = r"D:\Shilong\new_murmur\02_dataset" + set_type + r"\npyFile_padded\npy_files01_norm"
     # if len(test_fold) == 1:
     for k in test_fold:

@@ -36,8 +36,8 @@ if __name__ == '__main__':
                         choices=[True, False])
     parser.add_argument("--cross_eevalue", type=bool, default=False)
     parser.add_argument("--set_path", type=str, default=r"D:\Shilong\new_murmur\02_dataset")
-    # parser.add_argument("--train_fold", default=['0', '1', '2', '3'])
-    # parser.add_argument("--test_fold", default=['4'])
+    parser.add_argument("--train_fold", default=['0', '1', '2', '3'])
+    parser.add_argument("--test_fold", default=['4'])
     parser.add_argument("--set_name", type=str, default=r"\01_s1s2_4k")
     parser.add_argument("--model_folder", type=str, default=r"D:\Shilong\new_murmur\01_code\MurmurPro\model\MyModels")
     parser.add_argument("--isTensorboard", type=bool, default=False)
@@ -75,11 +75,11 @@ if __name__ == '__main__':
         else:
             all_list = ['0', '1', '2', '3', '4']
             all_list.remove(fold)
-            train_fold = all_list
-            test_fold = list(fold)
+            args.train_fold = all_list
+            args.test_fold = list(fold)
         # ========================/ 加载数据集 /========================== #
         train_features, train_label, train_index, test_features, test_label, test_index = fold5_dataloader(
-            args.set_path, train_fold, test_fold, args.data_augmentation, args.set_name)
+            args.set_path, args.train_fold,args. test_fold, args.data_augmentation, args.set_name)
         # ========================/ setup loader /========================== #
         if args.samplerWeight:
             weights = [5 if label == 1 else 1 for label in train_label]
@@ -121,7 +121,7 @@ if __name__ == '__main__':
         # ========================/ 打印日志 /========================== #
         # import torch
         # print(torch.__version__)
-        logger_init()
+        # logger_init()
         logging.info(f"{args.desperation}")
         logging.info(f"# Batch_size = {args.batch_size}")
         logging.info(f"# Num_epochs = {args.num_epochs}")
@@ -133,8 +133,8 @@ if __name__ == '__main__':
         logging.info(f"# Test_a/p = {test_absent_size}/{test_present_size}")
         logging.info(f"# Train set size = {train_set_size}")
         logging.info(f"# Testnet size = {test_set_size}")
-        logging.info(f"# Train_fold = {train_fold}")
-        logging.info(f"# Test_fold = {test_fold}")
+        logging.info(f"# Train_fold = {args.train_fold}")
+        logging.info(f"# Test_fold = {args.test_fold}")
         logging.info("# Optimizer = " + str(optimizer))
         logging.info("# ")
         # ========================/ 开始训练 /========================== #
