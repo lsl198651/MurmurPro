@@ -16,7 +16,7 @@ if __name__ == '__main__':
     # ========================/ 函数入口 /========================== #
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--batch_size", type=int, default=512, help="args.batch_size for training")
-    parser.add_argument("--num_epochs", type=int, default=5, help="num_epochs")
+    parser.add_argument("--num_epochs", type=int, default=100, help="num_epochs")
     parser.add_argument("--layers", type=int, default=3, help="layers number")
     parser.add_argument("--freqm_value", type=int, default=0, help="frequency mask max length")
     parser.add_argument("--timem_value", type=int, default=0, help="time mask max length")
@@ -64,10 +64,20 @@ if __name__ == '__main__':
                                       lr=args.learning_rate,
                                       betas=args.beta)
 
+    # ========================/ 打印日志 /========================== #
+    if not args.isTry:
+        logger_init()
+        args.num_epochs = 4
+    logging.info(f"{args.desperation}")
+    logging.info(f"# Batch_size = {args.batch_size}")
+    logging.info(f"# Num_epochs = {args.num_epochs}")
+    logging.info(f"# Learning_rate = {args.learning_rate:.1e}")
+    logging.info(f"# lr_scheduler = {args.scheduler_flag}")
+    logging.info(f"# Loss_fn = {args.loss_type}")
+    logging.info(f"# Set name = {args.set_name}")
+    logging.info("# Optimizer = " + str(optimizer))
+
     # ========================/ 检测分折重复 /========================== #
-    # for val in args.test_fold:
-    #     if val in args.train_fold:
-    #         raise ValueError("train_fold and test_fold have same fold")
     for fold in all_list:
         if args.isTry:
             train_fold = '0'
@@ -79,7 +89,8 @@ if __name__ == '__main__':
             args.test_fold = list(fold)
         # ========================/ 加载数据集 /========================== #
         train_features, train_label, train_index, test_features, test_label, test_index = fold5_dataloader(
-            args.set_path, args.train_fold,args. test_fold, args.data_augmentation, args.set_name)
+            args.set_path, args.train_fold, args.test_fold, args.data_augmentation, args.set_name)
+
         # ========================/ setup loader /========================== #
         if args.samplerWeight:
             weights = [5 if label == 1 else 1 for label in train_label]
@@ -118,25 +129,15 @@ if __name__ == '__main__':
         test_absent_size = np.sum(test_label == 0)
         test_set_size = test_label.shape[0]
 
-        # ========================/ 打印日志 /========================== #
-        # import torch
-        # print(torch.__version__)
-        # logger_init()
-        logging.info(f"{args.desperation}")
-        logging.info(f"# Batch_size = {args.batch_size}")
-        logging.info(f"# Num_epochs = {args.num_epochs}")
-        logging.info(f"# Learning_rate = {args.learning_rate:.1e}")
-        logging.info(f"# lr_scheduler = {args.scheduler_flag}")
-        logging.info(f"# Loss_fn = {args.loss_type}")
-        logging.info(f"# Set name = {args.set_name}")
+        # ========================/ 打印每折日志 /========================== #
+        logging.info("**************************************")
         logging.info(f"# Train_a/p = {train_absent_size}/{train_present_size}")
         logging.info(f"# Test_a/p = {test_absent_size}/{test_present_size}")
         logging.info(f"# Train set size = {train_set_size}")
         logging.info(f"# Testnet size = {test_set_size}")
         logging.info(f"# Train_fold = {args.train_fold}")
         logging.info(f"# Test_fold = {args.test_fold}")
-        logging.info("# Optimizer = " + str(optimizer))
-        logging.info("# ")
+
         # ========================/ 开始训练 /========================== #
         train_test(model=MyModel,
                    train_loader=train_loader,

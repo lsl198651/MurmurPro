@@ -413,7 +413,7 @@ def get_id_position_org(file_path, output_file_path, file_name):
     grouped.columns = ['id', 'auscultation_area', 'indices']
 
     # Save the grouped data to a new CSV file with headers
-    output_file = output_file_path + r'\organized_data_'+file_name
+    output_file = output_file_path + r'\organized_data_' + file_name
     grouped.to_csv(output_file, index=False)
 
 

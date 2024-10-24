@@ -1,17 +1,17 @@
 import logging
 import os
-import pandas as pd
+from datetime import datetime
+
 import torch
 import torch.nn as nn
-
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 from torcheval.metrics.functional import binary_auprc, binary_auroc, binary_f1_score, binary_confusion_matrix, \
     binary_accuracy, binary_precision, binary_recall
 from transformers import optimization
-from datetime import datetime
+
 from util.class_def import FocalLoss
-from util.utils_train import segment_classifier, new_segment_classifier
+from util.utils_train import new_segment_classifier
 
 
 def train_test(model,
@@ -32,7 +32,7 @@ def train_test(model,
     lr = []
     max_test_acc = []
     max_train_acc = []
-    best_acc = 0.0
+    best_ACC = 0.0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # torch.backends.cudnn.deterministic = True
     # torch.backends.cudnn.benchmark = False
@@ -122,32 +122,31 @@ def train_test(model,
             scheduler.step()
         # ------------------调库计算指标--------------------------
         test_input, test_target = torch.as_tensor(pred), torch.as_tensor(label)
-        test_auprc = binary_auprc(test_input, test_target)
-        test_auroc = binary_auroc(test_input, test_target)
+        segments_AUPRC = binary_auprc(test_input, test_target)
+        segments_AUROC = binary_auroc(test_input, test_target)
         test_acc = binary_accuracy(test_input, test_target)
-        test_f1 = binary_f1_score(test_input, test_target)
-        test_cm = binary_confusion_matrix(test_input, test_target)
+        segments_F1 = binary_f1_score(test_input, test_target)
+        segments_CM = binary_confusion_matrix(test_input, test_target)
+        segments_PPV = binary_precision(test_input, test_target)
+        segments_TPR = binary_recall(test_input, test_target)
         # --------------------------------------------------------
         # pd.DataFrame(error_index).to_csv(error_index_path + "/epoch" + str(epochs + 1) + ".csv",
         #                                  index=False,
         #                                  header=False)
-        location_acc, location_cm, patient_output, patient_target, patient_error_id = new_segment_classifier(
-            result_list_present,
-            args.test_fold)
-            # args.set_name)
-        # test_patient_input, test_patient_target = torch.as_tensor(patient_output), torch.as_tensor(patient_target)
-        # test_patient_auprc = binary_auprc(test_patient_input, test_patient_target)
-        # test_patient_auroc = binary_auroc(test_patient_input, test_patient_target)
-        # test_patient_acc = binary_accuracy(test_patient_input, test_patient_target)
-        # test_patient_f1 = binary_f1_score(test_patient_input, test_patient_target)
-        # test_patient_cm = binary_confusion_matrix(test_patient_input, test_patient_target)
+        result, target = new_segment_classifier(result_list_present, args.test_fold)
+        test_patient_input, test_patient_target = torch.as_tensor(result), torch.as_tensor(target)
+        patient_AUPRC = binary_auprc(test_patient_input, test_patient_target)
+        patient_AUROC = binary_auroc(test_patient_input, test_patient_target)
+        patient_ACC = binary_accuracy(test_patient_input, test_patient_target)
+        patient_F1 = binary_f1_score(test_patient_input, test_patient_target)
+        patient_CM = binary_confusion_matrix(test_patient_input, test_patient_target)
         # # 这两个算出来的都是present的
-        # test_ppv = binary_precision(test_patient_input, test_patient_target)
-        # test_tpr = binary_recall(test_patient_input, test_patient_target)
+        patient_PPV = binary_precision(test_patient_input, test_patient_target)
+        patient_TPR = binary_recall(test_patient_input, test_patient_target)
         "保存最好的模型"
-        # if test_patient_acc > best_acc:
-        #     best_acc = test_patient_acc
-            # if  args.saveModel is True:
+        if patient_ACC > best_ACC:
+            best_ACC = patient_ACC
+        # if  args.saveModel is True:
         #     save_checkpoint({"epoch": epochs + 1,
         #                      "model": model.state_dict(),
         #                      "optimizer": optimizer.state_dict()},
@@ -178,25 +177,28 @@ def train_test(model,
             # tb_writer.add_scalar("patient_acc", test_patient_acc, epochs)
         # ========================/ 日志 /========================== #
         logging.info(f"============================")
-        logging.info(f"epoch: {epochs + 1}/{args.num_epochs}")
-        logging.info(f"learning_rate: {lr_now:.1e}")
-        logging.info(f"Loss t: {train_loss:.2e} v: {test_loss:.2e}")
-        logging.info(f"max_acc t: {max_train_acc_value:.2%} v: {max_test_acc_value:.2%}")
-        logging.info(f"lr max:{max(lr):.1e} min:{min(lr):.1e}")
-        logging.info(f"train Acc: {train_acc:.2%} \nvalid Acc: {test_acc:.2%}")
-        logging.info(f"segment_cm:{test_cm.numpy()}")
-        logging.info(f"segments_auroc:{test_auroc:.3f}")
-        logging.info(f"segments_auprc:{test_auprc:.3f}")
-        logging.info(f"segments_f1_:{test_f1:.3f}")
+        logging.info(f"EPOCH: {epochs + 1}/{args.num_epochs}")
+        logging.info(f"Learning rate: {lr_now:.1e}")
+        logging.info(f"LOSS: train:{train_loss:.2e} verify:{test_loss:.2e}")
+        logging.info(f"segments_CM:{segments_CM.numpy()}")
+        logging.info(f"ACC: train:{train_acc:.2%} verify:{test_acc:.2%}")
+        logging.info(f"segments_TPR:{segments_TPR:.2%}")
+        logging.info(f"segments_PPV:{segments_PPV:.2%}")
+        logging.info(f"segments_F1:{segments_F1:.2%}")
+        logging.info(f"segments_AUROC:{segments_AUROC:.2%}")
+        logging.info(f"segments_AUPRC:{segments_AUPRC:.2%}")
         logging.info(f"----------------------------")
-        # logging.info(f"patient_acc:{test_patient_acc:.2%}")
-        # logging.info(f"patient_cm:{test_patient_cm.numpy()}")
-        # logging.info(f"patient_TPR:{test_tpr:.3f}")
-        # logging.info(f"patient_PPV:{test_ppv:.3f}")
-        # logging.info(f"patient_f1_:{test_patient_f1:.3f}")
-        # logging.info(f"patient_auroc:{test_patient_auroc:.3f}")
-        # logging.info(f"patient_auprc:{test_patient_auprc:.3f}")
-        logging.info(f"best_acc:{best_acc:.2%}")
+        logging.info(f"patient_CM:{patient_CM.numpy()}")
+        logging.info(f"patient_ACC:{patient_ACC:.2%}")
+        logging.info(f"patient_TPR:{patient_TPR:.2%}")
+        logging.info(f"patient_PPV:{patient_PPV:.2%}")
+        logging.info(f"patient_F1:{patient_F1:.2%}")
+        logging.info(f"patient_AUROC:{patient_AUROC:.2%}")
+        logging.info(f"patient_AUPRC:{patient_AUPRC:.2%}")
+        logging.info(f"LR max:{max(lr):.1e} min:{min(lr):.1e}")
+        logging.info(f"ACC MAX train:{max_train_acc_value:.2%} verify:{max_test_acc_value:.2%}")
+        logging.info(f"best ACC:{best_ACC:.2%}")
+
         # ========================/ 混淆矩阵 /========================== #
         """draw_confusion_matrix(
             test_cm.numpy(),

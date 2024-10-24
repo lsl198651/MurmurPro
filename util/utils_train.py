@@ -5,7 +5,6 @@ import sys
 from datetime import datetime
 
 import numpy as np
-import pandas as pd
 from sklearn.metrics import confusion_matrix
 
 from util.utils_dataset import csv_reader_row, csv_reader_cl, csv_to_dict
@@ -39,7 +38,7 @@ def new_segment_classifier(present_result_list: list, test_fold: list):
     for k in test_fold:
         present_result_set = set(present_result_list)
         file_absent = root_path + rf"\organized_data_fold{k}_absent_disc.csv"
-        print('processing file:', file_absent)
+        # print('processing file:', file_absent)
         absent_test_dic = csv_to_dict(file_absent)
         file_present = root_path + rf"\organized_data_fold{k}_present_disc.csv"
         present_test_dic = csv_to_dict(file_present)
@@ -55,7 +54,7 @@ def new_segment_classifier(present_result_list: list, test_fold: list):
                 test_dic[test_dic_key] = present_test_dic[test_dic_key]
 
         present_csv_name = rf"D:\Shilong\new_murmur\02_dataset\01_s1s2_4k\present_fold_{k}.csv"
-        present_id = csv_reader_cl(present_csv_name,0)
+        present_id = csv_reader_cl(present_csv_name, 0)
 
         # test_dic = {**absent_test_dic, **present_test_dic}
         for test_dic_key, _ in test_dic.items():
@@ -76,16 +75,13 @@ def new_segment_classifier(present_result_list: list, test_fold: list):
             all_result_dic[key]['target'] = 1
         else:
             all_result_dic[key]['target'] = 0
-    result=[]
-    target=[]
+    result = []
+    target = []
     for key, value in all_result_dic.items():
         result.append(value['result'])
         target.append(value['target'])
-
-
-    print('done')
-
-    return result,target
+    # print('done')
+    return result, target
 
 
 def get_patient_res(res_idc: dict):

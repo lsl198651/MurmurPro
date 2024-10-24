@@ -311,7 +311,7 @@ def fold5_dataloader(set_path, train_folder, test_folder, data_augmentation, set
                 train_mel_dic[train_folder[3]][train_folders[0]],
                 train_mel_dic[train_folder[3]][train_folders[1]]
 
-            ),axis=0
+            ), axis=0
         )
 
     # test_features = np.vstack(
@@ -336,7 +336,7 @@ def fold5_dataloader(set_path, train_folder, test_folder, data_augmentation, set
         (
             test_mel_dic[test_folder[0]]['absent'],
             test_mel_dic[test_folder[0]]['present']
-        ),axis=0
+        ), axis=0
     )
 
     return train_mel, train_label, train_index, test_mel, test_label, test_index  # , test_ebd

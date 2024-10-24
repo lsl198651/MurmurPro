@@ -11,4 +11,4 @@ if __name__ == "__main__":
             # print('processing file:', file)
             # get_id_position_org(root, output_path, file)
             print('processing file:', file)
-            a=csv_to_dict(root, file)
+            a = csv_to_dict(root, file)

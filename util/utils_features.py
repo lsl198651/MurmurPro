@@ -28,7 +28,7 @@ def get_logmel_feature(wavform, fs=4000):
     # 读取音频文件
     # y, sr = librosa.load(wavform, sr=4000)
     # 提取特征
-    mel = librosa.feature.melspectrogram(y=wavform, sr=fs, n_mels=128,n_fft=256)
+    mel = librosa.feature.melspectrogram(y=wavform, sr=fs, n_mels=128, n_fft=256)
     logmel = librosa.power_to_db(mel, ref=np.max)
     return logmel
 
