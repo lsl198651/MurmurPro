@@ -18,7 +18,8 @@ def mkdir(path):
 
 
 def csv_reader_cl(file_name, clo_num):
-    """read csv file by column
+    """
+    按列读文件，列号从0开始
     """
     with open(file_name, encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)

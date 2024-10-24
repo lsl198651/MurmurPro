@@ -55,7 +55,7 @@ def new_segment_classifier(present_result_list: list, test_fold: list):
                 test_dic[test_dic_key] = present_test_dic[test_dic_key]
 
         present_csv_name = rf"D:\Shilong\new_murmur\02_dataset\01_s1s2_4k\present_fold_{k}.csv"
-        present_id = pd.read_csv(present_csv_name, header=None)
+        present_id = csv_reader_cl(present_csv_name,0)
 
         # test_dic = {**absent_test_dic, **present_test_dic}
         for test_dic_key, _ in test_dic.items():
