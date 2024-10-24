@@ -65,9 +65,10 @@ if __name__ == '__main__':
                                       betas=args.beta)
 
     # ========================/ 打印日志 /========================== #
-    if not args.isTry:
-        logger_init()
+    if  args.isTry:
         args.num_epochs = 4
+    else:
+        logger_init()
     logging.info(f"{args.desperation}")
     logging.info(f"# Batch_size = {args.batch_size}")
     logging.info(f"# Num_epochs = {args.num_epochs}")
